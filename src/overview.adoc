@@ -1,0 +1,88 @@
+[[ArchitectureOverview]]
+== Architecture Overview
+
+This chapter introduces the OpenRISC 1000 architecture and describes the general architectural
+features.
+
+=== Feature
+
+The OpenRISC 1000 architecture includes the following principal features:
+
+* A completely free and open architecture.
+* A linear, 32-bit or 64-bit logical address space with implementation-specific physical address
+space.
+* Simple and uniform-length instruction formats featuring different instruction set extensions:
+    ** OpenRISC Basic Instruction Set (ORBIS32/64) with 32-bit wide instructions aligned on
+    32-bit boundaries in memory and operating on 32- and 64-bit data
+    ** OpenRISC Vector/DSP eXtension (ORVDX64) with 32-bit wide instructions aligned on 32-bit
+    boundaries in memory and operating on 8-, 16-, 32- and 64-bit data
+    ** OpenRISC Floating-Point eXtension (ORFPX32/64) with 32-bit wide instructions aligned on
+    32-bit boundaries in memory and operating on 32- and 64-bit data
+    ** OpenRISC Floating-Point eXtension (ORFPX64A32) with 32-bit wide instructions aligned on
+    32-bit boundaries in memory and operating on 64-bit data on 32-bit hardware by pairing 32-bit
+    registers
+* Two simple memory addressing modes, whereby memory address is calculated by:
+    ** addition of a register operand and a signed 16-bit immediate value
+    ** addition of a register operand and a signed 16-bit immediate value followed by update of
+    the register operand with the calculated effective address
+* Two register operands (or one register and a constant) for most instructions who then place the
+result in a third register
+* Shadowed or single 32-entry or narrow 16-entry general purpose register file
+* Optional branch delay slot for keeping the pipeline as full as possible
+* Support for separate instruction and data caches/MMUs (Harvard architecture) or for unified
+instruction and data caches/MMUs (Stanford architecture)
+* A flexible architecture definition that allows certain functions to be performed either in
+hardware or with the assistance of implementation-specific software
+* Number of different, separated exceptions simplifying exception model
+* Fast context switch support in register set, caches, and MMUs
+
+=== Introduce
+
+The OpenRISC 1000 architecture is a completely open architecture. It defines the architecture of
+a family of open source, RISC microprocessor cores. The OpenRISC 1000 architecture allows for a
+spectrum of chip and system implementations at a variety of price/performance points for a range
+of applications. It is a 32/64-bit load and store RISC architecture designed with emphasis on
+performance, simplicity, low power requirements, and scalability. OpenRISC 1000 targets medium
+and high performance networking and embedded computer environments.
+
+Performance features include a full 32/64-bit architecture; vector, DSP and floating-point
+instructions; powerful virtual memory support; cache coherency; optional SMP and SMT support, and
+support for fast context switching. The architecture defines several features for networking and
+embedded computer environments. Most notable are several instruction extensions, a configurable
+number of general-purpose registers, configurable cache and TLB sizes, dynamic power management
+support, and space for user-provided instructions.
+
+The OpenRISC 1000 architecture is the predecessor of a richer and more powerful next generation
+of OpenRISC architectures.
+
+The full source for implementations of the OpenRISC 1000 architecture is available at
+{url-openrisc} and https://github.com/openrisc[github openrisc] and is supported with GNU software
+development
+tools
+and a behavioral simulator. Most OpenRISC implementations are designed to be modular and
+vendor-independent. They can be interfaced with other opensource cores available at
+https://opencores.org.
+
+We encourage third parties to design and market their own implementations of the OpenRISC 1000
+architecture and to participate in further development of the architecture.
+
+=== Architecture Version Information
+
+It is anticipated that revisions of the OR1K architecture will come about as architectural
+modifications are made over time. This document shall be valid for the latest version stated in
+it. Each implementation should indicate the minimum revision it supports in the Architecture
+Version Register (AVR).
+
+The following table lists the versions and their release date.
+
+[[arch-version-table]]
+.Architecture Version Information
+[%autowidth, float="center", align="center", cols="^,^,^", options="headers",]
+|===
+|*Version* |*Data* |*Summary*
+|0.0 |November 2005 |Initial architecture specification.
+|1.0 |December 2012 |First version.
+|1.1 |April 2014 |Atomic instructions additions.
+|1.2 |April 2015 |SPRs in user mode, multicore.
+|1.3 |May 2019 |New floating point instructions, l.adrp.
+|===
