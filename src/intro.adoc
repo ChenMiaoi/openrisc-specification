@@ -1,0 +1,176 @@
+== About This Manual
+
+=== Introduction
+
+The OpenRISC 1000 system architecture manual defines the architecture for a family of open-source,
+synthesizable RISC microprocessor cores. The OpenRISC 1000 architecture allows for a spectrum of
+chip and system implementations at a variety of price/performance points for a range of applications.
+It is a 32/64-bit load and store RISC architecture designed with emphasis on performance, simplicity,
+low power requirements, and scalability. The OpenRISC 1000 architecture targets medium and high
+performance networking and embedded computer environments.This manual covers the instruction set,
+register set, cache management and coherency, memory model, exception model, addressing modes,
+operands conventions, and the application binary interface (ABI).
+
+This manual does not specify implementation-specific details such as pipeline depth, cache
+organization, branch prediction, instruction timing, bus interface etc.
+
+=== Authors
+
+If you have contributed to this manual but your name isn't listed here, it is not meant as a
+slight – We simply don't know about it. Send an email to the maintainer(s), and we'll correct the
+situation.
+
+[[AuthorsOfThisManual]]
+.Authors of this Manual
+[%autowidth, float="center", align="center", cols="^,^,^", options="headers",]
+|===
+|*Name* |*E-mail* |*Contribution*
+|Damjan |damjan@opensource.org |initial document
+|Chen-Min Chen |jimmy@ee.nctu.edu.tw |Some notes
+|Marko Mlinar |markom@opencores.org |Fast context switches
+|Johan Rydberg |jrydberg@opencores.org |ELF section
+|Matan Ziv-Av |matan@svgalib.org |Several suggestions
+|Chris Ziomkowski |chris@opencores.org |Several suggestions
+|Greg McGary |greg@mcgary.org |l.cmov, trap exception
+|Bob Gardner | |Native Speaker Check
+|Rohit Mathur |rohitmathurs@opencores.org |Technical review and corrections
+|Maria Bolado |mbolado@teisa.unican.es |Technical review andcorrections
+|ORSoC Yann Vernier |yannv@opencores.org |Technical review and corrections
+|Julius Baxter |julius@opencores.org |Architecture revision information
+|Stefan Kristiansson |stefan.kristiansson@saunalahti.fi |Atomic instructions
+|Stefan Wallentowitz |stefan@wallentowitz.de |Multicore and corrections
+|Stafford Horne |shorne@gmail.com |Multicore and FPU Contributions
+|Andrey Bacherov |bandvig@gmail.com |FPU Contributions
+|Chen Miao |chenmiao.ku@gmail.com |
+|===
+
+=== Document Revision History
+
+The revision history of this manual is presented in the table below.
+
+[[RevisionHistory]]
+.Revision History
+[%autowidth, float="center", align="center", cols="^,^,^,^", options="headers",]
+|===
+|Revision Date |By |Modifications |Arch. Ver(Maj.Min) – Doc Rev
+|15/Mar/2000 |Damjan Lampret |Initial document |0.0-0
+|7/Apr/2001 |Damjan Lampret |First public release |0.0-1
+|22/Apr/2001 |Damjan Lampret |Incorporated changes from Johan and Matan |0.0-2
+|16/May/2001 |Damjan Lampret |Changed SR, Debug, Exceptions, TT,PM. Added l.cmov, l.ff1, etc. |0.0-3
+|23/May/2001 |Damjan Lampret |Added SR[SUMRA], configuration registerc etc. |0.0-4
+|24/May/2001 |Damjan Lampret |Changed virtually almost all chapters in some way – major change is
+addition of configuration registers. |0.0-5
+|28/May/2001 |Damjan Lampret |Changed addresses of some SPRs, removed group SPR group 11, added
+DCR[CT]=7. |0.0-6
+
+|24/Jan/2002 |Marko Mlinar |Major check and update |0.0-7
+|9/Apr/2002 |Marko Mlinar |PICPR register removed; l.sys convention added; mtspr/mfspr now use
+bitwise OR instead of sum |0.0-8
+
+|28/July/2002 |Jeanne Wiegelmann |First overall review & layout adjustment |0.0-9
+|20/Sep/2002 |Rohit Mathur |Second overall review |0.0-10
+|12/Jan/2003 |Damjan Lampret |Synchronization with or1ksim and OR1200 RTL. Not all chapters have
+been checked. |0.0-11
+
+|26/Jan/2003 |Damjan Lampret |Synchronization with or1ksim and OR1200 RTL. From this revision on the
+manual carries revision number 1.0 and parts of the architecture that are implemented in OR1200
+will no longer change because OR1200 is being implemented in silicon. Major parts that are not
+implemented in OR1200 and could change in the future include ORFPX, ORVDX, PCU, fast context
+switching, and 64-bit extension. |0.0-12
+
+|26/Jun/2004 |Damjan Lampret |Fixed typos in instruction set description reported by Victor Lopez,
+Giles Hall and Luís Vitório Cargnini. Fixed typos in various chapters reported by Matjaz Breskvar
+. Changed description of PICSR. Updated ABI chapter based on agreed ABI from the openrisc mailing
+ list. Removed DMR1[ETE], clearly defined watchpoints&breakpoint, split long watchpoint chain
+ into two, removed WP10 and removed DMR1[DXFW], updated DMR2. Fixed FP definition (added FP
+ exception. FPCSR register). |0.0-13
+
+|3/Nov/2005 |Damjan Lampret |Corrected description of l.ff1, added l.fl1 instruction, corrected
+encoding of l.maci and added more description of tick timer. |0.0-14
+
+|15/Nov/2005 |Damjan Lampret |Corrected description of l.sfXXui (arch manual had a wrong
+description compared to behavior implemented in or1ksim/gcc/or1200). Removed Atomicity chapter.
+| 0.0-15
+
+| 22/Mar/2011 |ORSoC Yann Vernier |Converted to OpenDocument, ABI review, added instruction index
+ and machine code reference table, added ORFPX and ORVDX headings, corrected descriptions for l.div,
+l.divu, l.ff1, l.fl1, l.mac*, l.mulu, l.msb, l.sub, lv.cmp_*.h, lv.muls.h, lv.pack.h, lv.subus.b,
+TLBTR, OF64S, specified link register for l.jal and l.jalr, PPN sizes, adjusted instruction
+classes, various typographical cleanups, clarified delay slot and exception interaction for l.j*
+and l.sys, removed empty 32-bit implementation for lv.pack/unpack to prevent blank pages |0.0-16
+
+|6/Aug/2011 |Julius Baxter |Added architecture revision information. |0.0-17
+|05/Dec/2012 |Julius Baxter |Architecture version update Clarify unimplemented SPR space to be
+read as zero, writing to have no effect Clarify GPR0 implementation and use Remove l.trap
+instruction's conditional execution function Update ABI statement on returning structures by value
+Fix typo in register width description of l.sfle.d instruction Add UVRP bit in VR Add description
+of SPR VR2 Add description of SPR AVR Add description of SPR EVBAR Mention implication of EVBAR
+in appropriate sections Add description of ISR SPRs Add presence bits for AVR, EVBAR, ISRs to
+CPUCFGR Add ND bit to CPUCFGR and mention optional delay slot in appropriate sections Mention
+exceptions possible for all branch/jump instructions Add description of SPRs AECR, AESR Add
+presence bits for AECR and AESR to CPUCFGR Clarify overflow exception behavior for appropriate
+unsigned and signed arithmetic instructions (l.add, l.addi, l.addc, l.addic, l.mul, l.muli, l.mulu,
+l.div, l.divu, l.sub, l.mac, l.maci, l.msb) Remove “signed” from name of addition and subtraction
+instructions, as they are used for both unsigned and signed arithmetic Add l.macu and l.msbu
+instructions for performing unsigned MAC operations Add l.muld and l.muldu for performing
+multiplication and allowing the 64-bit result to be accessible on 32-bit implementations |1.0-0
+
+|21/Apr/2014 |Stefan Kristiansson |Add atomicity chapter. Add l.lwa and l.swa instructions. |1.1-0
+|3/Mar/2015 |Stefan Wallentowitz |Corrections to multiple instruction encodings. Clarify FPU
+tininess detection. |1.2-0
+
+|19/Aug/2017 |Stafford Horne |Add reservation of R10 for TLS. Add COREID and NUMCORES. Add atomic
+clarification on overlapping stores. |1.2-1
+|12/May/2019 |Stafford Horne Andrey Bacherov |Add l.lf, l.adrp, lf.sfun*,lf.stod.d,lf.dtos.d
+instructions. Document ORFPX64A32 instructions. Clarifications on floating point. Assign
+addresses for FPMADD* and VMAC* SPRs. |1.3-1
+|19/Feb/2022 |Stafford Horne |Change permissions of FPCSR to be user accessible. |1.4-0
+|===
+
+=== Work in Progress
+
+This document is work in progress. Anything in the manual could change until we have made our
+first silicon. The latest version is always available from revision control (Github as of this
+writing). See details about how to get it on {url-openrisc}. We are currently looking for people
+to work on and maintain this document. If you would like to contribute, please send an email to
+one of the authors.
+
+=== Fonts in this Manual
+
+In this manual, fonts are used as follows:
+
+* Bold font is used for emphasis.
+* UPPER CASE items may be either acronyms or register mode fields that can be written by software.
+Some common acronyms appear in the glossary.
+* Square brackets [] indicate an addressed field in a register or a numbered register in a register
+file
+
+=== Conventions
+
+[[ConventionsTable]]
+[%autowidth, float="center", align="center", cols="^,^", options="headers",]
+|===
+|l.mnemonic |Identifies an ORBIS32/64 instruction.
+|lv.mnemonic |Identifies an ORVDX32/64 instruction.
+|lf.mnemonic |Identifies an ORFPX32/64 or ORFPX64A32 instruction.
+|0x |Indicates a hexadecimal number.
+|rA |Instruction syntax used to identify a general purpose register REG[FIELD] Syntax used to
+identify specific bit(s) of a general or special purpose register. FIELD can be a name of one bit
+ or a group of bits or a numerical range constructed from two values separated by a colon.
+|X |In certain contexts, this indicates a ‘don't care’.
+|N |In certain contexts, this indicates an undefined numerical value.
+|Implementation |An actual processor implementing the OpenRISC 1000 architecture.
+|Unit |Sometimes referred to as a coprocessor. An implemented unit usually with some special
+registers and controlling instructions. It can be defined by the architecture or it may be custom.
+|Exception |A vectored transfer of control to supervisor software through an exception vector
+table. A way in which a processor can request operating system assistance (division by zero, TLB
+miss, external interrupt etc).
+|Privileged |An instruction (or register) that can only be executed (or accessed) when the
+processor is in supervisor mode (when SR[SM]=1)
+|===
+
+=== Numbering
+
+All numbers are decimal or hexadecimal unless otherwise indicated. The prefix *0x* indicates a
+hexadecimal number. Decimal numbers don't have a special prefix. Binary and other numbers are
+marked with their base.
