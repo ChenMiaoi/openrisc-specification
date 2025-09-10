@@ -1,0 +1,3 @@
+[submodule "docs-resources"]
+	path = docs-resources
+	url = git@github.com:ChenMiaoi/docs-resources.git

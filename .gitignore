@@ -1,0 +1,7 @@
+build
+.idea
+
+# for bundle
+*.lock
+.bundle
+vendor/bundle

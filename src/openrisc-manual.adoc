@@ -1,0 +1,61 @@
+[[manual:unpriv]]
+= OpenRISC ISA Manual Specification
+include::../docs-resources/global-config.adoc[]
+:description: OpenRISC Architecture
+:colophon:
+:preface-title: Preamble
+:appendix-caption: Appendix
+:imagesdir: {docdir}/../assets/images
+// :title-logo-image: image:risc-v_logo.png["RISC-V International Logo",pdfwidth=3.25in,align=center]
+ifdef::draft-watermark[]
+// :page-background-image: image:draft.png[opacity=20%]
+endif::[]
+//:title-page-background-image: none
+//:back-cover-image: image:backpage.png[opacity=25%]
+// :back-cover-image: image:riscv-horizontal-color.svg[opacity=25%]
+// Settings:
+:experimental:
+:reproducible:
+:imagesoutdir: {docdir}/../build/images-out
+:bibtex-file: {docdir}/../assets/resource/openrisc.bib
+:bibtex-order: alphabetical
+:bibtex-style: apa
+:bibtex-format: asciidoc
+:bibtex-throw: false
+:icons: font
+:lang: en
+:example-caption: Example
+:listing-caption: Listing
+:sectnums:
+:sectnumlevels: 5
+:toc: left
+:toclevels: 5
+:source-highlighter: rouge
+:table-caption: Table
+:figure-caption: Figure
+:xrefstyle: short
+:chapter-refsig: Chapter
+:section-refsig: Section
+:appendix-refsig: Appendix
+// Uncomment :data-uri: if your eBook reader is not capable of rendering
+// embedded images. One known affected device is PocketBook InkPad 3.
+:data-uri:
+:hide-uri-scheme:
+:stem: latexmath
+:footnote:
+:le: &#8804;
+:ge: &#8805;
+:ne: &#8800;
+:approx: &#8776;
+:inf: &#8734;
+:csrname: envcfg
+
+_Copyright © 2000-2022 OPENRISC.IO and Authors_
+
+_This document is free; you can redistribute it and/or modify it under the terms of the GNU General
+Public License as published by the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version._
+
+_This document is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+General Public License for more details._
