@@ -1,0 +1,217 @@
+[[RegisterSet]]
+== Register Set
+
+=== Features
+
+The OpenRISC 1000 register set includes the following principal features:
+
+* Thirty-two or sixteen 32/64-bit general-purpose registers – OpenRISC 1000 implementations
+optimized for use in FPGAs and ASICs in embedded and similar environments may implement only the
+first sixteen of the possible thirty-two registers.
+* All other registers are special-purpose registers defined for each unit separately and
+accessible through the l.mtspr/l.mfspr instructions.
+
+=== Overview
+
+An OpenRISC 1000 processor includes several types of registers: user level general-purpose and
+special-purpose registers, supervisor level special-purpose registers and unit-dependent registers.
+
+User level general-purpose and special-purpose registers are accessible both in user mode and
+supervisor mode of operation. Supervisor level special-purpose registers are accessible only in
+supervisor mode of operation (SR[SM]=1).
+
+Unit dependent registers are usually only accessible in supervisor mode but there can be
+exceptions to this rule. Accessibility for architecture-defined units is defined in this manual.
+Accessibility for custom units not covered by this manual will be defined in the appropriate
+implementation-specific manuals.
+
+=== Special-Purpose Registers
+
+The special-purpose registers of all units are grouped into thirty-two groups. Each group can
+have different register address decoding depending on the maximum theoretical number of registers
+in that particular group. A group can contain registers from several different units or processes.
+The SR[SM] bit is also used in register address decoding, as some registers are accessible only
+in supervisor mode. The l.mtspr and l.mfspr instructions are used for reading and writing registers.
+
+Unimplemented SPRs should read as zero. Writing to unimplemented SPRs will have no effect, and
+the l.mtspr instruction will effectively be a no-operation.
+
+[[GroupsOfSPRs]]
+.Groups of SPRS
+[%autowidth, float="center", align="center", cols="^,^", options="headers",]
+|===
+|*GROUP#* |*UNIT DESCRIPTION
+|2 |Instruction MMU (in the case of a single unified MMU, groups 1 and 2 decodeinto a single set
+of registers)
+
+|3 |Data Cache (in the case of a single unified cache, groups 3 and 4 decode into a single set of
+ registers)
+
+|4 |Instruction Cache (in the case of a single unified cache, groups 3 and 4 decode into a single
+ set of registers)
+
+|5 |MAC unit
+|6 |Debug unit
+|7 |Performance counters unit
+|8 |Power Management
+|9 |Programmable Interrupt Controller
+|10 |Tick Timer
+|11 |Floating Point unit
+|12-23 |Reserved for future use
+|24-31 |Custom units
+|===
+
+An OpenRISC 1000 processor implementation is required to implement at least the special purpose
+registers from group 0. All other groups are optional, and registers from these groups are
+implemented only if the implementation has the corresponding unit. Which units are actually
+implemented may be determined by reading the UPR register from group 0.
+
+A 16-bit SPR address is made of 5-bit group index (bits 15-11) and 11-bit register index(bits 10-0).
+
+[[AllSpecialRegister]]
+.List of All Special-Purpose Registers
+[%autowidth, float="center", align="center", cols="^,^,^,^,^,^", options="headers",]
+|===
+|*Grp #* |*Reg #* |*Reg Name* |*USER MODE* |*SUPV MODE* |*Description*
+|5 |3 |FPMADDLO |R/W* |R/W* |Floating Point MAC Low
+|5 |4 |FPMADDHI |R/W* |R/W* |Floating Point MAC High
+|5 |5 |VMACLO |R/W* |R/W* |Vector MAC Low
+|5 |6 |VMACHI |R/W* |R/W* |Vector MAC High
+|6 |0-7 |DVR0-DVR7 |– |R/W |Debug Value registers
+|6 |8-15 |DCR0-DCR7 |– |R/W |Debug Control registers
+|6 |16 |DMR1 |– |R/W |Debug Mode register 1
+|6 |17 |DMR2 |– |R/W |Debug Mode register 2
+|6 |18-19 |DCWR0-DCWR1 |– |R/W |Debug Watchpoint Counter registers
+|6 |20 |DSR |– |R/W |Debug Stop register
+|6 |21 |DRR |– |R/W |Debug Reason register
+|7 |0-7 |PCCR0-PCCR7 |R* |R/W |Performance Counters Count registers
+|7 |8-15 |PCMR0-PCMR7 |– |R/W |Performance Counters Mode registers
+|8 |0 |PMR |– |R/W |Power Management register
+|9 |0 |PICMR |– |R/W |PIC Mask register
+|9 |2 |PICSR |– |R/W |PIC Status register
+|10 |0 |TTMR |– |R/W |Tick Timer Mode register
+|10 |1 |TTCR |R* |R/W |Tick Timer Count register
+|===
+
+SPRs with R* for user mode access are readable in user mode if SR[SUMRA] is set.The MACLO and
+MACHI registers are synchronized, such that any ongoing MAC operation finishes before they are
+read or written.
+
+=== General-Purpose Registers (GPRs)
+
+The thirty-two general-purpose registers are labeled R0-R31 and are 32 bits wide in 32- bit
+implementations and 64 bits wide in 64-bit implementations. They hold scalar integer data,
+floating-point data, vectors or memory pointers. Table 4-3 contains a list of general-purpose
+registers. The GPRs may be accessed as both source and destination registers by ORBIS, ORVDX and
+ORFPX instructions.
+
+See chapter link:abi.adoc[Application Binary Interface] on page 351 for information on
+floating-point data types. See also Register Usage on page 354, where r9 is defined as the
+Link Register.
+
+// TODO Table4-3
+
+R0 should always hold a zero value. It is the responsibility of software to initialize it.(This
+differs from architecture version 0 which commented on implementation and that it should never be
+used as a destination register – this is no longer specified.) Functions of other registers are
+explained in chapter Application Binary Interface on page 351. An implementation may have several
+sets of GPRs and use them as shadow registers, switching between them whenever a new exception
+occurs. The current set is identified by the SR[CID] value.
+
+An implementation is not required to initialize GPRs to zero during the reset procedure.The reset
+exception handler is responsible for initializing GPRs to zero if that is necessary.
+
+=== Support for Custom Number of GPRs
+
+Programs may be compiled with less than thirty-two registers. Unused registers are disabled (set
+as fixed registers) when compiling code. Such code is also executable on normal implementations
+with thirty-two registers but not vice versa. This feature is quite useful since users are
+expected to move from less powerful OpenRISC implementations with less than thirty-two registers
+to more powerful thirty-two register OpenRISC implementations.
+
+If configuration registers are implemented, CPUCFGR[CGF] indicates whether implementation has
+complete thirty-two general-purpose registers or less than thirty-two registers. OR1200 has been
+implemented with 16 or 32 registers.
+
+=== Supervision Register (SR)
+
+The Supervison register is a 32-bit special-purpose supervisor-level register accessible with
+the l.mtspr/l.mfspr instructions in supervisor mode only.
+
+The SR value defines the state of the processor.
+
+// TODO Table 4-4. SR Field Descriptions
+
+=== Exception Program Counter Registers(EPCR0 - EPCR15)
+
+The Exception Program Counter registers are special-purpose supervisor-level registers accessible
+with the l.mtspr/l.mfspr instructions in supervisor mode. Read access in user mode is possible if
+it is enabled in PCMRx[SUMRA]. They are 32-bit wide registers in 32-bit implementations and can
+be wider than 32 bits in 64-bit implementations.
+
+After an exception, the EPCR is set to the program counter address (PC) of the instruction that
+was interrupted by the exception. If only one EPCR is present in the implementation (Fast Context
+Switching (Optional) disabled), it must be saved by the exception handler routine before
+exception recognition is re-enabled in the SR.
+
+// TODO Table 4-5. EPCR Field Descriptions
+
+=== Exception Effective Address Registers(EEAR0-EEAR15)
+
+The Exception Effective Address registers are special-purpose supervisor-level registers
+accessible with the l.mtspr/l.mfspr instructions in supervisor mode. Read access in user mode is
+possible if it is enabled in SR[SUMRA]. The EEARs are 32-bit wide registers in 32-bit
+implementations and can be wider than 32 bits in 64-bit implementations.
+
+After an exception, the EEAR is set to the effective address (EA) generated by the faulting
+instruction. If only one EEAR is present in the implementation, it must be saved by the exception
+handler routine before exception recognition is re-enabled in the SR.
+
+// TODO Table 4-6. EEAR Field Descriptions
+
+=== Exception Supervision Registers(ESR0-ESR15)
+
+The Exception Supervision registers are special-purpose supervisor-level registers with l.mtspr/
+l.mfspr instructions in supervisor mode. They are 32 bits wide registers in 32-bit
+implementations and can be wider than 32 bits in 64-bit implementations.
+
+After an exception, the Supervision register (SR) is copied into the ESR. If only one ESR is
+present in the implementation, it must be saved by the exception handler routine before exception
+recognition is re-enabled in the SR.
+
+// TODO Table 4-7. ESR Field Descriptions
+
+=== Core Identification Registers (COREID andNUMCORES)
+
+The Core Identification registers are special-purpose registers used in multicore platform
+configurations. They are 32 bit wide registers in 32-bit implementations and can be wider than 32
+bits in 64-bit implementations.
+
+The first core is indexed with 0.
+
+=== Next and Previous Program Counter(NPC and PPC)
+
+The Program Counter registers represent the address just executed and the address instruction
+just to be executed.
+
+These and the GPR registers mapped into SPR space should only be used for debugging purposes by
+an external debugger. Applications should use the l.jal instruction to obtain the current program
+counter and arithmethic instructions to obtain GPR register values.
+
+=== Floating Point Control Status Register(FPCSR)
+
+Floating point control status register is a 32-bit special-purpose register accessible with the
+l.mtspr/l.mfspr instructions in supervisor and user mode.
+
+The FPCSR value controls floating point rounding modes, optional generation of floating point
+exception and provides floating point status flags. Status flags are updated after every floating
+point instruction is completed and can serve to determine what caused the floating point exception.
+
+Tininess detection before rounding is used for all operations when detecting underflow exceptions
+as described in the IEEE-754 standard.
+
+If floating point exception is enabled then FPCSR status flags have to be cleared in floating
+point exception handler. Status flags are cleared by writing 0 to all status bits.
+
+// TODO Table 4-8. FPCSR Field Descriptions
+
