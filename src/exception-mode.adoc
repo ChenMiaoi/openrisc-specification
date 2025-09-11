@@ -1,0 +1,237 @@
+[[ExceptionMode]]
+== Exception Mode
+
+This chapter describes the various exception types and their handling.
+
+=== Introduction
+
+The exception mechanism allows the processor to change to supervisor state as a result of
+external signals, errors, or unusual conditions arising in the execution of instructions. When
+exceptions occur, information about the state of the processor is saved to certain registers and
+the processor begins execution at the address predetermined for each exception. Processing of
+exceptions begins in supervisor mode.
+
+The OpenRISC 1000 arcitecture has special support for fast exception processing – also called
+fast context switch support. This allows very rapid interrupt processing. It is achieved with
+shadowing general-purpose and some special registers. The architecture requires that all
+exceptions be handled in strict order with respect to the instruction stream. When an
+instruction-caused exception is recognized, any unexecuted instructions that appear earlier in
+the instruction stream are required to complete before the exception is taken.
+
+Exceptions can occur while an exception handler routine is executing, and multiple exceptions can
+become nested. Support for fast exceptions allows fast nesting of exceptions until all shadowed
+registers are used. If context switching is not implemented, nested exceptions should not occur.
+
+=== Exception Classes
+
+All exceptions can be described as precise or imprecise and either synchronous or asynchronous.
+Synchronous exceptions are caused by instructions and asynchronous exceptions are caused by
+events external to the processor.
+
+[[ExceptionClasses]]
+.Exception Classes
+[%autowidth, float="center", align="center", cols="^,^", options="headers",]
+|===
+|*Type* |*Exception*
+|Asynchronous/nonmaskable |Bus Error, Reset
+|Asynchronous/maskable |External Interrupt, Tick Timer
+|Synchronous/precise |Instruction-caused exceptions
+|Synchronous/imprecise |None
+|===
+
+Whenever an exception occurs, current PC is saved to current EPCR and new PC is set
+with the vector address according to Table 6-2.
+// Need Modify
+
+
+[[ExceptionTyes]]
+.Exception Types and Causal Conditions
+[%autowidth, float="center", align="center", cols="^,^,^", options="headers",]
+|===
+|*Exception Type* |*Vector Offset* |*Causal Conditions*
+|Reset |0x100 |Caused by software or hardware reset.
+|Bus Error |0x200 |The causes are implementation-specific, but typically they are related to bus
+errors and attempts to access invalid physical address.
+|Data Page Fault |0x300 |No matching PTE found in page tables or page protection violation for
+load/store operations.
+|Instruction Page Fault |0x400 |No matching PTE found in page tables or page protection violation
+for instruction fetch.
+|Tick Timer |0x500 |Tick timer interrupt asserted.
+|Alignment |0x600 |Load/store access to naturally not aligned location.
+|Illegal Instruction |0x700 |Illegal instruction in the instruction stream.
+|External Interrupt |0x800 |External interrupt asserted.
+|D-TLB Miss |0x900 |No matching entry in DTLB (DTLB miss).
+|I-TLB Miss |0xA00 |No matching entry in ITLB (ITLB miss).
+|Range |0xB00 |If programmed in the SR, the setting of certain flags, like SR[OV], causes a range
+exception. On OpenRISC implementations with less than 32 GPRs when accessing unimplemented
+architectural GPRs. On all implementations if SR[CID] had to go out of range in order to process
+next exception.
+|System Call |0xC00 |System call initiated by software.
+|Floating Point |0xD00 |Caused by floating point instructions when FPCSR status flags are set by
+FPU and FPCSR[FPEE] is set
+|Trap |0xE00 |Caused by the l.trap instruction or by debug unit.
+|Reserved |0xF00 – 0x1400 |Reserved for future use.
+|Reserved |0x1500 – 0x1800 |Reserved for implementation-specific exceptions.
+|Reserved |0x1900 – 0x1F00 |Reserved for custom exceptions.
+|===
+
+=== Exception Processing
+
+Whenever an exception occurs, the current/next PC is saved to the current EPCR. If the CPU
+implements delay-slot execution (CPUCFGR[ND] is not set) and the PC points to the delay-slot
+instruction, PC-4 is saved to the current EPCR and SR[DSX] is set. Table 6-3 defines what are
+current/next PC and effective address.
+
+The SR is saved to the current ESR.
+
+Current EPCR/ESR are identified by SR[CID]. If fast context switching is not implemented then
+current EPCR/ESR are always EPCR0/ESR0. In addition, the current EEAR is set with the effective
+address in question if one of the following exceptions occurs: Bus Error, IMMU page fault, DMMU
+page fault, Alignment, I-TLB miss, D-TLB miss.
+
+In the case of Floating Point exceptions the results are written back to registers before the
+exception branch occurs.
+[[ValuesOfEPCR]]
+.Values of EPCR and EEAR After Exception
+[%autowidth, float="center", align="center", cols="^,^,^,^,^", options="headers",]
+|===
+|*Exception* |*Priority* |*EPCR(no delay slot)* |*EPCR(delay slot)* |*EEAR*
+|Reset |1 |- |- |-
+|Bus Error |4(insn) 9 (data) |Address of instruction that caused exception |Address of jump
+instruction before the instruction that caused exception |Load/store/fetch virtual EA
+|Data Page Fault |8 |Address of instruction that caused exception |Address of jump instruction
+before the instruction that caused exception |Load/store virtual EA
+|Instruction Page Fault |3 |Address of instruction that caused exception |Address of jump
+instruction before the instruction that caused exception |Instruction fetch virtual EA
+|Tick Timer |12 |Address of next not executed instruction |Address of just executed jump instruction
+|-
+|Alignment |6 |Address of instruction that caused exception |Address of jump instruction before
+the instruction that caused exception |Load/store virtual EA
+|Illegal Instruction |5 |Address of instruction that caused exception |Address of jump
+instruction before the instruction that caused exception |Instruction fetch virtal EA
+|External Interrupt |12 |Address of next not executed instruction |Address of just executed jump
+instruction |-
+|D-TLB Miss |7 |Address of instruction that caused exception |Address of jump instruction before
+the instruction that caused exception |Load/store virtual EA
+|I-TLB Miss |2 |Address of instruction that caused exception |Address of jump instruction before
+the instruction that caused exception |Instruction fetch virtual EA
+|Range |10 |Address of instruction that caused exception |Address of jump instruction before the
+instruction that caused exception |-
+|System Call |7 |Address of next not executed instruction |Address of just executed jump instruction
+|-
+|Floating Point |11 |Address of next not executed instruction |Address of just executed jump
+instruction |-
+|Trap |7 |Address of instruction that caused exception |Address of jump instruction before the
+instruction that caused exception |-
+|===
+
+If fast context switching is used, SR[CID] is incremented with each new exception so that a new
+set of shadowed registers is used. If SR[CID] will overflow with the current exception, a range
+exception is invoked.
+
+However, if SR[CE] is not set, fast context switching is not enabled. In this case all registers
+that will be modified by exception handler routine must first be saved. All exceptions set a new
+SR where both MMUs are disabled (address translation disabled), supervisor mode is turned on,
+and tick timer exceptions and interrupts are disabled. (SR[DME]=0, SR[IME]=0, SR[SM]=1, SR[IEE]=0
+and SR[TEE]=0). When enough machine state information has been saved by the exception handler,
+SR[TTE] and SR[IEE] can be re-enabled so that tick timer and external interrupts are not blocked.
+
+When returning from an exception handler with l.rfe, SR and PC are restored. If SR[CE] is set,
+CID will be automatically decremented and the previous machine state will be restored; otherwise,
+general-purpose registers previously saved by exception handler need to be restored as well.
+
+==== Particular delay slot issues
+
+Instructions placed in the delay slot will cause EPCR to be set to the address of the jump
+instruction, not the delay slot or target instruction. Because of this, two categories of
+instruction should never be placed in the delay slot:
+
+1. Instructions altering the conditions of the jump itself. This is why l.jr must not have a
+delay slot instruction modify the target address register.
+2. Instructions consistently causing an exception, such as l.sys. Normally l.sys returns to
+continue execution, but if placed in a delay slot it instead causes a repeat of the system call
+itself. l.trap is generally used as a software breakpoint, so may not have the same concern.
+
+=== Fast Context Switching (Optional)
+
+Fast context switching is a technique that reduces register storing to stack when exceptions
+occur. Only one type of exception can be handled, so it is up to the software to figure out what
+caused it. Using software, both interrupt handler invokation and thread switching can be handled
+very quickly. The hardware should be capable of switching between contexts in only one cycle.
+
+Context can also be switched during an exception or by using a supervisor register CXR (context
+register) available only in supervisor mode. CXR is the same for all contexts.
+
+==== Changing Context in Supervisor Mode
+
+The read/write register CXR consists of two parts: the lower 16 bits represents the current
+context register set. The upper 16 bits represent the current CID. CCID cannot be accessed in
+user mode. Writing to CCID causes an immediate context change. Reading from CCID returns the
+running (current) context ID. The context where CID=0 is also called the main context.
+
+[%autowidth, float="center", align="center", cols="^,^,^", options="headers",]
+|===
+|*BIT* |*31-16* |*15-0*
+|Identifier |CCID |CCRS
+|Reset |0 |0
+|===
+
+CCRS has two functions:
+
+* When an exception occurs, it holds the previous CID.
+* It is used to access other context's registers.
+
+==== Context Switch Caused by Exception
+
+When an exception occurs and fast context switching is enabled, the CCID is copied to CCRS and
+then set to zero, thus switching to main context.
+
+Functions of the main context are:
+
+* Switching between threads
+* Handling exceptions
+* Preparing, loading, saving, and releasing context identifiers to/from the CID table
+
+CXR should be stored in a general-purpose register as soon as possible, to allow further
+exception nesting.
+
+The following table shows an example how the CID table could be used. Generally, there is no need
+that free exception contexts are equal.
+
+[%autowidth, float="center", align="center", cols="^,^", options="headers",]
+|===
+|*CID* |*Function*
+|7 |
+|6 |Exception contexts
+|5 |
+|4 |Thread contexts
+|3 |
+|2 |
+|1 |
+|0 |Main context
+|===
+
+Four thread contexts are loaded, and software can switch between them freely using main context,
+running in supervisor mode. When an exception occurs, first need to be determined what caused it
+and switch to the next free exception context. Since exceptions can be nested, more free contexts
+may have to be available. Some of the contexts thus need to be stored to memory in order to
+switch to a new exception.
+
+The algorithm used in the main context to handle context saving/restoring and switching can be
+kept as simple as possible. It should have enough (of its own) registers to store information
+such as:
+
+* Current running CID
+* Next exception
+* Thread cycling info
+* Pointers to context table in memory
+* Copy of CXR
+
+If the number of interrupts is significant, some sort of defered interrupts calls mechanism can
+be used. The main context algorithm should store just I/O information passed by the interrupt for
+further execution and return from main context as soon as possible.
+
+==== Accessing Other Contexts’ Registers
+
+This operation can be done only in supervisor mode. In the basic instruction set we have the
+l.mtspr and l.mfspr instructions that are used to access shadowed registers
