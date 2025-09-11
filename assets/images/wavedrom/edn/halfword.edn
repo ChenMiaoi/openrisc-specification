@@ -1,0 +1,7 @@
+[wavedrom, ,svg]
+....
+{reg: [
+    {bits: 8,   name: 'LSB',    attr: ['Byte address 0']},
+    {bits: 8,   name: 'MSB',    attr: ['Byte address 1']}
+]}
+....

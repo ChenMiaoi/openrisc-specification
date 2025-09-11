@@ -1,0 +1,115 @@
+[[Memory-Mode]]
+:imagesdir: {docdir}/../assets/images
+
+== Addressing Modes and Operand Conventions
+
+This chapter describes memory-addressing modes and memory operand conventions defined by the
+OpenRISC 1000 system architecture.
+
+=== Memory Addressing Modes
+
+The processor computes an effective address when executing a memory access instruction or branch
+instruction or when fetching the next sequential instruction. If the sum of the effective address
+and the operand length exceeds the maximum effective address in logical address space, the memory
+operand wraps around from the maximum effective address through effective address 0.
+
+==== Register Indirect with Displacement
+
+Load/store instructions using this address mode contain a signed 16-bit immediate value, which is
+sign-extended and added to the contents of a general-purpose register specified in the instruction.
+
+image::png/figure3-1.png[align="center",width="480"]
+
+==== PC Relative
+
+Branch instructions using this address mode contain a signed 26-bit immediate value that is
+sign-extended and added to the contents of a Program Counter register. Before the execution at
+the destination PC, instruction in delay slot is executed if the ND bit in CPU Configuration
+Register(CPUCFGR) is set.
+
+image::png/figure3-2.png[align="center",width="520"]
+
+=== Memory Operand Conventions
+
+The architecture defines an 8-bit byte, 16-bit halfword, a 32-bit word, and a 64-bit doubleword.
+It also defines IEEE-754 compliant 32-bit single precision float and 64-bit double precision
+float storage units. 64-bit vectors of bytes, 64-bit vectors of halfwords, 64-bit vectors of
+singlewords, and 64-bit vectors of single precision floats are also defined.
+
+[[MemoryOperands]]
+.Memory Operands and their sizes
+[%autowidth, float="center", align="center", cols="^,^,^", options="headers",]
+|===
+|*Type of Data* |*Length in Bytes* |*Length in Bits*
+|Byte |1 |8
+|Halfword (or half) |2 |16
+|Singleword (or word) |4 |32
+|Doubleword (or double) |8 |64
+|Single precision float |4 |32
+|Double precision float |8 |64
+|Vector of bytes |8 |64
+|Vector of halfwords |8 |64
+|Vector of singlewords |8 |64
+|Vector of single precision floats |8 |64
+|===
+
+==== Bit and Byte Ordering
+
+Byte ordering defines how the bytes that make up halfwords, singlewords and doublewords are
+ordered in memory. To simplify OpenRISC implementations, the architecture implements Most
+Significant Byte (MSB) ordering – or big endian byte ordering by default. But implementations can
+support Least Significant Byte (LSB) ordering if they implement byte reordering hardware.
+Reordering is enabled with bit SR[LEE].
+
+The figures below illustrate the conventions for bit and byte numbering within various width
+storage units. These conventions hold for both integer and floating-point data, where the most
+significant byte of a floating-point value holds the sign and at least significant byte holds the
+start of the exponent.
+
+Figure 1 shows how bits and bytes are ordered in a halfword.
+
+[[Halfwords]]
+.Default Bit and Byte Ordering in Halfwords
+image::wavedrom/svg/halfword.svg[]
+
+Figure 2 shows how bits and bytes are ordered in a singleword.
+
+[[SingleWords]]
+.Default Bit and Byte Ordering in Singlewords and Single Precision Floats
+image::wavedrom/svg/word.svg[]
+
+Figure 3 shows how bits and bytes are ordered in a doubleword.
+
+[[DoubleWords]]
+.Default Bit and Byte Ordering in Doublewords, Double Precision Floats and all Vector Types.
+image::wavedrom/svg/doubleword.svg[]
+
+==== Aligned and Misaligned Accesses
+
+A memory operand is naturally aligned if its address is an integral multiple of the operand
+length. Implementations might support accessing unaligned memory operands, but the default
+behavior is that accesses to unaligned operands result in an alignment exception. See chapter
+Exception Model on page 270 for information on alignment exception.
+
+Current OR32 implementations (OR1200) do not implement 8 byte alignment, but do require 4 byte
+alignment. Therefore the Application Binary Interface (chapter 17) uses 4 byte alignment for 8
+byte types. Future extensions such as ORVDX64 may require natural alignment.
+
+[[MemoryOperandAlignment]]
+.Memory Operand Alignment
+[%autowidth, float="center", align="center", cols="^,^,^", options="headers",]
+|===
+|*Operand* |*Length* |*addr[3:0] if aligned*
+|Byte |8 bits |Xxxx
+|Halfword (or half) |2 bytes |Xxx0
+|Singleword (or word) |4 bytes |Xx00
+|Doubleword (or double) |8 bytes |X000
+|Single precision float |4 bytes |Xx00
+|Double precision float |8 bytes |X000
+|Vector of bytes |8 bytes |X000
+|Vector of halfwords |8 bytes |X000
+|Vector of singlewords |8 bytes |X000
+|Vector of single precision floats |8 bytes |X000
+|===
+
+OR32 instructions are four bytes long and word-aligned.
