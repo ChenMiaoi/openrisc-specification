@@ -5,3 +5,7 @@ build
 *.lock
 .bundle
 vendor/bundle
+
+#for npm
+node_modules
+package-lock.json

@@ -32,11 +32,15 @@ Targets:
 """
 
 import os
+import pathlib
 import shutil
 import subprocess
 import sys
 import argparse
 import inspect
+import json
+import tempfile
+import re
 from datetime import datetime
 from os import mkdir, makedirs, environ
 from typing import List, Dict, Optional
@@ -66,7 +70,13 @@ DEPENDENCIES = {
     "ruby": {
         "config": f"{ROOT_PATH}/Gemfile",
         "install_path": f"{ROOT_PATH}/vendor/bundle",
-    }
+    },
+    "node": {
+        "url": "curl -o- https://fnm.vercel.app/install | bash",
+        "version": "20",
+        "required": "wavedrom-cli",
+        "install_path": f"{ROOT_PATH}/node_modules/.bin",
+    },
 }
 
 CONFIGS = {
@@ -254,6 +264,55 @@ class DocumentBuilder:
             self.logger.error(f"Failed to install packages: {e.stderr.decode().strip()}")
             return False
 
+    def _setup_node_environment(self, node_config: Dict) -> bool:
+        """Set up Node environment using fnm"""
+        try:
+            # Check if node is installed
+            try:
+                subprocess.run(["node", "--version"], check=True, capture_output=True)
+                node_installed = True
+            except (subprocess.CalledProcessError, FileNotFoundError):
+                node_installed = False
+
+            # If not installed, install using node_config["url"]
+            if not node_installed:
+                subprocess.run(node_config["url"], check=True)
+
+                if "version" in node_config:
+                    subprocess.run(["fnm", "install", node_config["version"]], check=True,
+                                   stdout=subprocess.PIPE if not self.verbose else None,
+                                   stderr=subprocess.PIPE if not self.verbose else None)
+                    subprocess.run(["fnm", "use", node_config["version"]], check=True,
+                                   stdout=subprocess.PIPE if not self.verbose else None,
+                                   stderr=subprocess.PIPE if not self.verbose else None)
+
+                # Verify installation
+                subprocess.run(["node", "--version"], check=True)
+            self.logger.success(f"Successfully installed node, version: {node_config['version']}")
+
+            # Check for package.json and required dependencies
+            if os.path.exists(f"{ROOT_PATH}/package.json"):
+                subprocess.run(["npm", "install"], check=True,
+                               stdout=subprocess.PIPE if not self.verbose else None,
+                               stderr=subprocess.PIPE if not self.verbose else None)
+            else:
+                self.logger.error(f"Could not find package.json in {ROOT_PATH}/package.json")
+                return False
+
+            # Add install path to environment PATH
+            if "install_path" in node_config:
+                self.env["PATH"] = f"{node_config['install_path']}:{self.env['PATH']}"
+
+            self.logger.success("Node environment setup completed")
+            return True
+
+        except subprocess.CalledProcessError as e:
+            self.logger.error(f"Node environment setup failed: {e.stderr.decode().strip()}")
+            return False
+        except Exception as e:
+            self.logger.error(f"Unexpected error during Node environment setup: {str(e)}")
+            return False
+
     def _setup_ruby_environment(self, ruby_config: Dict, ruby_require: List) -> bool:
         """Set up Ruby environment using Bundler"""
         try:
@@ -318,6 +377,63 @@ class DocumentBuilder:
             build_targs = doc.split(".")[1]
             self.work_dir[build_targs] = work_path
 
+    def update_wave(self) -> bool:
+        """Update wave by extracting content between .... markers"""
+        self.logger.debug("Updating wave...")
+
+        if not self._setup_node_environment(DEPENDENCIES["node"]):
+            return False
+
+        wave_path = f"{ROOT_PATH}/assets/images/wavedrom/edn"
+        edn_files = list(pathlib.Path(wave_path).glob("*.edn"))
+        svg_path = f"{ROOT_PATH}/assets/images/wavedrom/svg"
+
+        self.logger.debug(f"Extracting content from {len(edn_files)} files")
+
+        for edn_file in edn_files:
+            svg_file = f"{svg_path}/{edn_file.with_suffix('.svg').name}"
+
+            try:
+                # Read the EDN file content
+                with open(edn_file, 'r') as f:
+                    content = f.read()
+
+                # Extract content between .... markers
+                pattern = r'^\.\.\.\.\n(.*?)\n\.\.\.\.$'
+                match = re.search(pattern, content, re.DOTALL | re.MULTILINE)
+
+                if not match:
+                    self.logger.error(f"No content found between .... markers in {edn_file}")
+                    return False
+
+                wave_content = match.group(1)
+
+                # Create a temporary file with just the wave content
+                with tempfile.NamedTemporaryFile(mode='w+', suffix='.edn', delete=False) as tmp:
+                    tmp.write(wave_content)
+                    tmp_path = tmp.file.name
+
+                # Run wavedrom-cli on the temporary file
+                subprocess.run([
+                    'wavedrom-cli', '-i', tmp_path, '-s', str(svg_file)],
+                    check=True,
+                    env=self.env,
+                    stdout=subprocess.PIPE if not self.verbose else None,
+                    stderr=subprocess.PIPE if not self.verbose else None)
+
+                # Clean up the temporary file
+                os.unlink(tmp_path)
+
+            except subprocess.CalledProcessError as e:
+                self.logger.error(f"Failed to generate {svg_file}: {e}")
+                return False
+            except Exception as e:
+                self.logger.error(f"Error processing {edn_file}: {e}")
+                return False
+
+        self.logger.success(f"Successfully updated wavedrom: {svg_path}")
+        return True
+
     def build_for_all(self, build_target: str):
         """Build documentation for a specific target"""
         cmd = []
@@ -376,6 +492,10 @@ class DocumentBuilder:
         if not self._setup_ruby_environment(DEPENDENCIES['ruby'], REQUIRES):
             return False
 
+        # Setup Node environment
+        if not self._setup_node_environment(DEPENDENCIES["node"]):
+            return False
+
         # Verify required source files exist
         for source in self.required_source:
             if not os.path.exists(source):
@@ -418,6 +538,8 @@ def parse_args():
     parser.add_argument('--clean', action='store_true', help='Clean build artifacts')
     parser.add_argument('--verbose', action='store_true', help='Show detailed build output')
     parser.add_argument('--version', type=str, default='1.4.0', help='Specify the version number (e.g., 1.0.0)')
+    parser.add_argument("--node-version", type=str, default='20', help='Specify the version number (e.g., 20)')
+    parser.add_argument("--update-wave", action='store_true', default=False, help='Update Wave')
     parser.add_argument('target', nargs='?', default='all',
                         choices=['all', 'pdf', 'html', 'epub', 'tags'],
                         help='Build target')
@@ -431,6 +553,7 @@ def main():
     CONFIGS['default_type'] = args.release_type
     CONFIGS['build_target'] = args.target
     CONFIGS['version'] = args.version
+    DEPENDENCIES['node']['version'] = args.node_version
 
     builder = DocumentBuilder(CONFIGS, verbose=args.verbose)
 
@@ -441,6 +564,10 @@ def main():
             builder.logger.success("Build directory cleaned")
         else:
             builder.logger.info("Build directory does not exist, nothing to clean")
+        return
+
+    if args.update_wave:
+        builder.update_wave()
         return
 
     try:
