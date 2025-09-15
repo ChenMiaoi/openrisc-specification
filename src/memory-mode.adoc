@@ -1,0 +1,37 @@
+[[MemoryMode]]
+:imagesdir: {docdir}/../assets/images
+:codedir: {docdir}/../assets/resource/code
+
+== Memory Mode
+
+This chapter describes the OpenRISC 1000 weakly ordered memory model.
+
+=== Memory
+
+Memory is byte-addressed with halfword accesses aligned on 2-byte boundaries, singleword accesses aligned on 4-byte boundaries, and doubleword accesses aligned on 8-byte boundaries.
+
+=== Memory Access Ordering
+
+The OpenRISC 1000 architecture specifies a weakly ordered memory model for uniprocessor and shared memory multiprocessor systems. This model has the advantage of a higher-performance memory system but places the responsibility for strict access ordering on the programmer.
+
+The order in which the processor performs memory access, the order in which those accesses complete in memory, and the order in which those accesses are viewed by another processor may all be different. Two means of enforcing memory access ordering are provided to allow programs in uniprocessor and multiprocessor system to share memory.
+
+An OpenRISC 1000 processor implementation may also implement a more restrictive, strongly ordered memory model. Programs written for the weakly ordered memory model will automatically work on processors with strongly ordered memory model.
+
+=== Memory Synchronize Instruction
+
+The l.msync instruction permits the program to control the order in which load and store operations are performed. This synchronization is accomplished by requiring programs to indicate explicitly in the instruction stream, by inserting a memory sync instruction, that synchronization is required. The memory sync instruction ensures that all memory accesses initiated by a program have been performed before the next instruction is executed.
+
+OpenRISC 1000 processor implementations, that implement the strongly-ordered memory model instead of the weakly-ordered one, can execute memory synchronization instruction as a no-operation instruction.
+
+=== Pages Designated as Weakly-Ordered-Memory
+
+When a memory page is designated as a Weakly-Ordered-Memory (WOM) page, instructions and data can be accessed out-of-order and with prefetching. When a page is designated as not WOM, instruction fetches and load/store operations are performed in-order without any prefetching.
+
+OpenRISC 1000 scalar processor implementations, that implement strongly-ordered memory model instead of the weakly-ordered one and perform load and store operations in-order, are not required to implement the WOM bit in the MMU.
+
+=== Atomicity
+
+A memory access is atomic if it is always performed in its entirety with no visible fragmentation. Atomic memory accesses are specifically required to implement software semaphores and other shared structures in systems where two different processes on the same processor, or two different processors in a multiprocessor environment, access the same memory location with intent to modify it.
+
+include::{codedir}/atomic-sample1.adoc[]

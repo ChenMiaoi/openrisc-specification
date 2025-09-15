@@ -1,0 +1,17 @@
+[NOTE]
+====
+The OpenRISC 1000 architecture provides two dedicated instructions that together perform an atomic read-modify-write operation.
+
+[source, asm]
+  l.lwa   rD, I(rA)
+  l.swa   I(rA), rB
+
+Instruction l.lwa loads single word from memory, creating a reservation for a subsequent conditional store operation. A special register, invisible to the programmer, is used to hold the address of the memory location, which is used in the atomic read-modify-write operation.
+
+The reservation for a subsequent l.swa is cancelled if another store overlapping the same memory location occurs, another master writes overlapping same memory location (snoop hit), another l.swa (to any memory location) is executed, another l.lwa is executed or a context switch (exception) occur.  Keep in mind that the overlapping stores may be byte or half-word size.
+
+If a reservation is still valid when the corresponding l.swa is executed, l.swa stores general-purpose register rB into the memory and SR[F] is set.
+If the reservation was cancelled, l.swa does not perform the store to memory and SR[F] is cleared.
+
+In implementations that use a weakly-ordered memory model, l.swa and l.lwa will serve as synchronization points, similar to l.msync.
+====
