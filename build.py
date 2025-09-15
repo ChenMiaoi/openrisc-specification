@@ -66,6 +66,10 @@ DEPENDENCIES = {
         "apt": ["bison", "build-essential", "cmake", "curl", "flex", "fonts-lyx", "graphviz", "bundler",
                 "default-jre", "libcairo2-dev", "libffi-dev", "libgdk-pixbuf2.0-dev", "libpango1.0-dev",
                 "libxml2-dev", "make", "pkg-config", "ruby", "ruby-dev", "libwebp-dev", "libzstd-dev"],
+        "dnf": ["bison", "cmake", "curl", "flex", "graphviz", "bundler", "java-21-openjdk", "ruby", 
+                "ruby-devel", "cairo-devel", "libffi-devel", "pango-devel", "libxml2-devel", "make", 
+                "pkgconfig", "libwebp-devel", "libzstd", "gdk-pixbuf2", "gdk-pixbuf2-devel", "cairo-gobject",
+                "cairo-gobject-devel", "jbig2dec", "jbig2dec-devel", "jbigkit", "jbigkit-devel"],
     },
     "ruby": {
         "config": f"{ROOT_PATH}/Gemfile",
@@ -230,34 +234,52 @@ class DocumentBuilder:
                 os_release = f.read()
             if 'ubuntu' in os_release.lower() or 'debian' in os_release.lower():
                 return 'apt'
+            elif 'fedora' in os_release.lower():
+                return 'dnf'
             return 'unknown'
         except FileNotFoundError:
             return 'unknown'
 
     @staticmethod
-    def _check_package_installed(package: str) -> bool:
+    def _check_package_installed(package: str, distro: str) -> bool:
         """Check if a package is installed using dpkg"""
         try:
-            result = subprocess.run(
-                ['dpkg', '-s', package],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                check=True
-            )
+            if distro == "apt":
+                result = subprocess.run(
+                    ['dpkg', '-s', package],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    check=True
+                )
+            elif distro == "dnf":
+                result = subprocess.run(
+                    ['rpm', '-q', package],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    check=True
+                )
             return 'Status: install ok installed' in result.stdout.decode()
         except subprocess.CalledProcessError:
             return False
 
-    def _install_packages(self, packages: List[str]) -> bool:
+    def _install_packages(self, packages: List[str], distro: str) -> bool:
         """Install packages using apt"""
         self.logger.info(f"Installing packages: {', '.join(packages)}")
         try:
-            subprocess.run(
-                ['sudo', 'apt-get', 'install', '-y'] + packages,
-                check=True,
-                stdout=subprocess.PIPE if not self.verbose else None,
-                stderr=subprocess.PIPE if not self.verbose else None
-            )
+            if distro == "apt":
+                subprocess.run(
+                    ['sudo', 'apt-get', 'install', '-y'] + packages,
+                    check=True,
+                    stdout=subprocess.PIPE if not self.verbose else None,
+                    stderr=subprocess.PIPE if not self.verbose else None
+                )
+            elif distro == "dnf":
+                subprocess.run(
+                    ['sudo', 'dnf', 'install', '-y'] + packages,
+                    check=True,
+                    stdout=subprocess.PIPE if not self.verbose else None,
+                    stderr=subprocess.PIPE if not self.verbose else None
+                )
             self.logger.success(f"Successfully installed packages: {', '.join(packages)}")
             return True
         except subprocess.CalledProcessError as e:
@@ -276,7 +298,8 @@ class DocumentBuilder:
 
             # If not installed, install using node_config["url"]
             if not node_installed:
-                subprocess.run(node_config["url"], check=True)
+                subprocess.run(node_config["url"], check=True, shell=True)
+                subprocess.run("source $HOME/.bashrc", check=True, executable="/bin/bash", shell=True)
 
                 if "version" in node_config:
                     subprocess.run(["fnm", "install", node_config["version"]], check=True,
@@ -341,7 +364,16 @@ class DocumentBuilder:
                            stdout=subprocess.PIPE if not self.verbose else None,
                            stderr=subprocess.PIPE if not self.verbose else None)
 
-            ruby_version = "3.3.0"  # Simplified for example
+            # ruby_version = "3.3.0"  # Simplified for example
+            ruby_version = subprocess.run(
+                ["ruby", "-v"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            ).stdout.strip().split()[1][:-1] + '0'
+            
+            self.logger.info(f"Ruby Version: {ruby_version}")
+
 
             self.ruby_bin = f"{ruby_config['install_path']}/ruby/{ruby_version}/bin"
             self.ruby_lib = f"{ruby_config['install_path']}/ruby/{ruby_version}/gems"
@@ -476,11 +508,22 @@ class DocumentBuilder:
         if distro == 'apt':
             packages_to_install = []
             for package in DEPENDENCIES['packages']['apt']:
-                if not self._check_package_installed(package):
+                if not self._check_package_installed(package, "apt"):
                     packages_to_install.append(package)
 
             if packages_to_install:
-                if not self._install_packages(packages_to_install):
+                if not self._install_packages(packages_to_install, "apt"):
+                    return False
+            else:
+                self.logger.info("All required packages are already installed")
+        elif distro == 'dnf':
+            packages_to_install = []
+            for package in DEPENDENCIES['packages']['dnf']:
+                if not self._check_package_installed(package, "dnf"):
+                    packages_to_install.append(package)
+
+            if packages_to_install:
+                if not self._install_packages(packages_to_install, "dnf"):
                     return False
             else:
                 self.logger.info("All required packages are already installed")
