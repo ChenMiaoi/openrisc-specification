@@ -18,13 +18,13 @@ The order in which the processor performs memory access, the order in which thos
 
 An OpenRISC 1000 processor implementation may also implement a more restrictive, strongly ordered memory model. Programs written for the weakly ordered memory model will automatically work on processors with strongly ordered memory model.
 
-=== Memory Synchronize Instruction
+==== Memory Synchronize Instruction
 
 The l.msync instruction permits the program to control the order in which load and store operations are performed. This synchronization is accomplished by requiring programs to indicate explicitly in the instruction stream, by inserting a memory sync instruction, that synchronization is required. The memory sync instruction ensures that all memory accesses initiated by a program have been performed before the next instruction is executed.
 
 OpenRISC 1000 processor implementations, that implement the strongly-ordered memory model instead of the weakly-ordered one, can execute memory synchronization instruction as a no-operation instruction.
 
-=== Pages Designated as Weakly-Ordered-Memory
+==== Pages Designated as Weakly-Ordered-Memory
 
 When a memory page is designated as a Weakly-Ordered-Memory (WOM) page, instructions and data can be accessed out-of-order and with prefetching. When a page is designated as not WOM, instruction fetches and load/store operations are performed in-order without any prefetching.
 
