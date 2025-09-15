@@ -1,4 +1,4 @@
-[[Memory-Mode]]
+[[Address-Memory-Mode]]
 :imagesdir: {docdir}/../assets/images
 
 == Addressing Modes and Operand Conventions

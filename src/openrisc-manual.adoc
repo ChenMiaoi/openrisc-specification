@@ -62,7 +62,7 @@ General Public License for more details._
 
 include::intro.adoc[]
 include::overview.adoc[]
-include::memory-mode.adoc[]
+include::address-memory-mode.adoc[]
 include::register-set.adoc[]
 include::exception-mode.adoc[]
 
