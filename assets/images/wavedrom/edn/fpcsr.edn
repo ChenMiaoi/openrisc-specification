@@ -1,0 +1,24 @@
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 1, name: "IXF",  attr: ["0", "R/W"]},
+  {bits: 1, name: "IVF",  attr: ["0", "R/W"]},
+  {bits: 1, name: "INF",  attr: ["0", "R/W"]},
+  {bits: 12, name: "Reserved",  attr: ["0", "Read Only"]},
+  {bits: 1, name: "",  attr: ["Reset", "R/W"]},
+]}
+....
+
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 1, name: "FPEE",  attr: ["0", "R/W"]},
+  {bits: 2, name: "RM",  attr: ["0", "R/W"]},
+  {bits: 1, name: "OVF",  attr: ["0", "R/W"]},
+  {bits: 1, name: "UNF",  attr: ["0", "R/W"]},
+  {bits: 1, name: "SNF",  attr: ["0", "R/W"]},
+  {bits: 1, name: "QNF",  attr: ["0", "R/W"]},
+  {bits: 1, name: "ZF",  attr: ["0", "R/W"]},
+  {bits: 1, name: "",  attr: ["Reset", "R/W"]},
+]}
+....

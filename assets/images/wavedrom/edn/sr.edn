@@ -1,0 +1,39 @@
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 1, name: "SUMRA",  attr: ["0", "R/W"]},
+  {bits: 11, name: "Reserved",  attr: ["0", "Read Only"]},
+  {bits: 4, name: "CID",  attr: ["0", "R/W"]},
+  {bits: 1, name: "",  attr: ["Reset", "R/W"]},
+]}
+....
+
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 1, name: "CE",  attr: ["0", "R/W"]},
+  {bits: 1, name: "F",  attr: ["0", "R/W"]},
+  {bits: 1, name: "CY",  attr: ["0", "R/W"]},
+  {bits: 1, name: "OV",  attr: ["0", "R/W"]},
+  {bits: 1, name: "OVE",  attr: ["0", "R/W"]},
+  {bits: 1, name: "DSX",  attr: ["0", "R/W"]},
+  {bits: 1, name: "EPH",  attr: ["0", "R/W"]},
+  {bits: 1, name: "FO",  attr: ["1", "R/W"]},
+  {bits: 1, name: "",  attr: ["Reset", "R/W"]},
+]}
+....
+
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 1, name: "SM",  attr: ["1", "R/W"]},
+  {bits: 1, name: "TEE",  attr: ["0", "R/W"]},
+  {bits: 1, name: "IEE",  attr: ["0", "R/W"]},
+  {bits: 1, name: "DCE",  attr: ["0", "R/W"]},
+  {bits: 1, name: "ICE",  attr: ["0", "R/W"]},
+  {bits: 1, name: "DME",  attr: ["0", "R/W"]},
+  {bits: 1, name: "IME",  attr: ["0", "R/W"]},
+  {bits: 1, name: "LEE",  attr: ["0", "R/W"]},
+  {bits: 1, name: "",  attr: ["Reset", "R/W"]},
+]}
+....
