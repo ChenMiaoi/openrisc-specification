@@ -23,11 +23,19 @@ jobs:
       - name: Build PDF
         run: python build.py pdf
 
+      - name: Generate Timestamp
+        id: get-time
+        run: |
+          echo "formatted_time=$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_OUTPUT
+
       - name: Release PDF
         uses: softprops/action-gh-release@v2
         with:
-          name: Auto Release from Main
-          tag_name: draft-${{ github.run_number }}
-          body: "Automatically built and released PDF from GitHub Actions"
+          name: Draft Release - ${{ steps.get-time.outputs.formatted_time }}
+          tag_name: draft-${{ steps.get-time.outputs.formatted_time }}
+          body: "Automatically built and released PDF from GitHub Actions.
+
+            ⚠️ This is a **draft** release for testing or preview purposes.
+            The final release will be published when ready."
           files: build/openrisc-manual.pdf
           token: ${{ secrets.OPENRISC_TOKEN }}
