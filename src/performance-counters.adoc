@@ -1,0 +1,99 @@
+[[PerformanceCounters]]
+:imagesdir: {docdir}/../assets/images
+:codedir: {docdir}/../assets/resource/code
+
+== Performance Counters Unit (Optional)
+
+This chapter describes the OpenRISC 1000 performance counters facility. Performance counters can be used to count predefined events such as L1 instruction or data cache misses, branch instructions, pipeline stalls etc.
+
+Data from the Performance Counters Unit can be used for the following:
+
+* To improve performance by developing better application level algorithms, better optimized operating system routines and for improvements in the hardware architecture of these systems (e.g. memory subsystems).
+* To improve future OpenRISC implementations and add future enhancements to the OpenRISC architecture.
+* To help system developers debug and test their systems.
+
+=== Features
+
+The OpenRISC 1000 architecture defines eight performance counters. Additional performance counters can be defined by the implementation itself. The Performance Counters Unit is optional and the presence of an implementation is indicated by the UPR[PCUP] bit.
+
+* Optional implementation.
+* Eight architecture defined performance counters
+* Eight custom performance counters
+* Programmable counting conditions.
+
+=== Performance Counters Count Registers (PCCR0-PCCR7)
+
+The performance counters count registers are 32-bit special-purpose supervisor-level registers accessible with the l.mtspr/l.mfspr instructions in supervisor mode. Read access in user mode is possible, if it is enabled in SR[SUMRA].
+
+They are counters of the events programmed in the PCMR registers.
+
+include::{imagesdir}/wavedrom/edn/pccr.edn[]
+
+[[PCCR]]
+.PCCR Field Description
+[%autowidth, float="center", align="center", cols="^,^", options="headers",]
+|===
+|COUNT	|Event counter
+|===
+
+=== Performance Counters Mode Registers (PCMR0-PCMR7)
+
+The performance counters mode registers are 32-bit special-purpose supervisor-level registers accessible with the l.mtspr/l.mfspr instructions in supervisor mode.
+
+They define which events the performance counters unit counts.
+
+include::{imagesdir}/wavedrom/edn/pcmr.edn[]
+
+[[PCMR]]
+.PCMR Field Description
+[%autowidth, float="center", align="center", cols="^,^,^,^", options="headers",]
+|===
+|CP	|Counter Present +
+0 Counter not present +
+1 Counter present
+|CISM	|Count in Supervisor Mode +
+0 Counter disabled in supervisor mode +
+1 Counter counts events in supervisor mode
+|CIUM	|Count in User Mode +
+0 Counter disabled in user mode +
+1 Counter counts events in user mode
+|LA	|Load Access event +
+0 Event ignored +
+1 Count load accesses
+|SA	|Store Access event +
+0 Event ignored +
+1 Count store accesses
+|IF	|Instruction Fetch event +
+0 Event ignored +
+1 Count instruction fetches
+|DCM	|Data Cache Miss event +
+0 Event ignored +
+1 Count data cache missed
+|ICM	|Instruction Cache Miss event +
+0 Event ignored +
+1 Count instruction cache misses
+|IFS	|Instruction Fetch Stall event +
+0 Event ignored +
+1 Count instruction fetch stalls
+|LSUS	|LSU Stall event +
+0 Event ignored +
+1 Count LSU stalls
+|BS	|Branch Stalls event +
+0 Event ignored +
+1 Count branch stalls
+|DTLBM	|DTLB Miss event +
+0 Event ignored +
+1 Count DTLB misses
+|ITLBM	|ITLB Miss event +
+0 Event ignored +
+1 Count ITLB misses
+|DDS	|Data Dependency Stalls event +
+0 Event ignored +
+1 Count data dependency stalls
+|WPE	|Watchpoint Events +
+000 0000 0000 All watchpoint events ignored +
+000 0000 0001 Watchpoint 0 counted +
+… +
+111 1111 1111 All watchpoints counted
+| |
+|===

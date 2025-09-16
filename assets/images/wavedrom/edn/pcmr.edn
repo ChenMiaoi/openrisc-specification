@@ -1,0 +1,30 @@
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 1, name: "LSUS", attr: ["0", "R/W"]},
+  {bits: 1, name: "BS", attr: ["0", "R/W"]},
+  {bits: 1, name: "DTLBM", attr: ["0", "R/W"]},
+  {bits: 1, name: "ITLBM", attr: ["0", "R/W"]},
+  {bits: 1, name: "DDS", attr: ["0", "R/W"]},
+  {bits: 11, name: "WPE", attr: ["0", "R/W"]},
+  {bits: 5, name: "Reserved", attr: ["X", "Read Only"]},
+  {bits: 1, name: "", attr: ["Reset", "R/W"]},
+]}
+....
+
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 1, name: "CP", attr: ["0", "R"]},
+  {bits: 1, name: "Reserved", attr: ["0", "R/W"]},
+  {bits: 1, name: "CISM", attr: ["0", "R/W"]},
+  {bits: 1, name: "CIUM", attr: ["0", "R/W"]},
+  {bits: 1, name: "LA", attr: ["0", "R/W"]},
+  {bits: 1, name: "SA", attr: ["0", "R/W"]},
+  {bits: 1, name: "IF", attr: ["0", "R/W"]},
+  {bits: 1, name: "DCM", attr: ["0", "R/W"]},
+  {bits: 1, name: "ICM", attr: ["0", "R/W"]},
+  {bits: 1, name: "IFS", attr: ["0", "R/W"]},
+  {bits: 1, name: "", attr: ["Reset", "R/W"]},
+]}
+....
