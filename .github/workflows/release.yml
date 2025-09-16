@@ -1,0 +1,30 @@
+name: Main
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Build PDF
+        run: python build.py pdf
+
+      - name: Release PDF
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Auto Release from Main
+          tag_name: draft-${{ github.run_number }}
+          body: "Automatically built and released PDF from GitHub Actions"
+          files: build/openrisc-manual.pdf
