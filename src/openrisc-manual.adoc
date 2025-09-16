@@ -66,5 +66,6 @@ include::address-memory-mode.adoc[]
 include::register-set.adoc[]
 include::exception-mode.adoc[]
 include::memory-mode.adoc[]
+include::memory-management.adoc[]
 
 include::index.adoc[]

@@ -1,0 +1,14 @@
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 1, name: "CC",},
+  {bits: 1, name: "CI",},
+  {bits: 1, name: "WBC",},
+  {bits: 1, name: "WOM",},
+  {bits: 1, name: "A",},
+  {bits: 1, name: "D",},
+  {bits: 3, name: "PP Index",},
+  {bits: 1, name: "L",},
+  {bits: 22, name: "Physical Page Number",},
+]}
+....

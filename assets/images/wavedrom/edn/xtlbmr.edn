@@ -1,0 +1,19 @@
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 18, name: "VPN",  attr: ["X", "R/W"]},
+  {bits: 1, name: "",  attr: ["Reset", "R/W"]},
+]}
+....
+
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 1, name: "V",  attr: ["0", "R/W"]},
+  {bits: 1, name: "PL1",  attr: ["0", "R/W"]},
+  {bits: 4, name: "CID",  attr: ["X", "R/W"]},
+  {bits: 2, name: "LRU",  attr: ["0", "R/W"]},
+  {bits: 5, name: "Reserved",  attr: ["X", "W"]},
+  {bits: 1, name: "",  attr: ["Reset", "R/W"]},
+]}
+....

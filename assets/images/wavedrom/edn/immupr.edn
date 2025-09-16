@@ -1,0 +1,28 @@
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 1, name: "SXE5",  attr: ["0", "R/W"]},
+  {bits: 1, name: "UXE5",  attr: ["0", "R/W"]},
+  {bits: 1, name: "SXE6",  attr: ["0", "R/W"]},
+  {bits: 1, name: "UXE6",  attr: ["0", "R/W"]},
+  {bits: 1, name: "SXE7",  attr: ["0", "R/W"]},
+  {bits: 1, name: "UXE7",  attr: ["0", "R/W"]},
+  {bits: 2, name: "Reserved",  attr: ["X", "R"]},
+  {bits: 1, name: "",  attr: ["Reset", "R/W"]},
+]}
+....
+
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 1, name: "SXE1",  attr: ["0", "R/W"]},
+  {bits: 1, name: "UXE1",  attr: ["0", "R/W"]},
+  {bits: 1, name: "SXE2",  attr: ["0", "R/W"]},
+  {bits: 1, name: "UXE2",  attr: ["0", "R/W"]},
+  {bits: 1, name: "SXE3",  attr: ["0", "R/W"]},
+  {bits: 1, name: "UXE3",  attr: ["0", "R/W"]},
+  {bits: 1, name: "SXE4",  attr: ["0", "R/W"]},
+  {bits: 1, name: "UXE4",  attr: ["0", "R/W"]},
+  {bits: 1, name: "",  attr: ["Reset", "R/W"]},
+]}
+....

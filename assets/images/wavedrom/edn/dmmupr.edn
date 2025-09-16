@@ -1,0 +1,57 @@
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 1, name: "SRE7",  attr: ["0", "R/W"]},
+  {bits: 1, name: "SWE7",  attr: ["0", "R/W"]},
+  {bits: 1, name: "URE7",  attr: ["0", "R/W"]},
+  {bits: 1, name: "UWE7",  attr: ["0", "R/W"]},
+  {bits: 4, name: "Reserved",  attr: ["X", "R"]},
+  {bits: 1, name: "",  attr: ["Reset", "R/W"]},
+]}
+....
+
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 1, name: "SRE5",  attr: ["0", "R/W"]},
+  {bits: 1, name: "SWE5",  attr: ["0", "R/W"]},
+  {bits: 1, name: "URE5",  attr: ["0", "R/W"]},
+  {bits: 1, name: "UWE5",  attr: ["0", "R/W"]},
+  {bits: 1, name: "SRE6",  attr: ["0", "R/W"]},
+  {bits: 1, name: "SWE6",  attr: ["0", "R/W"]},
+  {bits: 1, name: "URE6",  attr: ["0", "R/W"]},
+  {bits: 1, name: "UWE6",  attr: ["0", "R/W"]},
+  {bits: 1, name: "",  attr: ["Reset", "R/W"]},
+]}
+....
+
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 1, name: "SRE3",  attr: ["0", "R/W"]},
+  {bits: 1, name: "SWE3",  attr: ["0", "R/W"]},
+  {bits: 1, name: "URE3",  attr: ["0", "R/W"]},
+  {bits: 1, name: "UWE3",  attr: ["0", "R/W"]},
+  {bits: 1, name: "SRE4",  attr: ["0", "R/W"]},
+  {bits: 1, name: "SWE4",  attr: ["0", "R/W"]},
+  {bits: 1, name: "URE4",  attr: ["0", "R/W"]},
+  {bits: 1, name: "UWE4",  attr: ["0", "R/W"]},
+  {bits: 1, name: "",  attr: ["Reset", "R/W"]},
+]}
+....
+
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 1, name: "SRE1",  attr: ["0", "R/W"]},
+  {bits: 1, name: "SWE1",  attr: ["0", "R/W"]},
+  {bits: 1, name: "URE1",  attr: ["0", "R/W"]},
+  {bits: 1, name: "UWE1",  attr: ["0", "R/W"]},
+  {bits: 1, name: "SRE2",  attr: ["0", "R/W"]},
+  {bits: 1, name: "SWE2",  attr: ["0", "R/W"]},
+  {bits: 1, name: "URE2",  attr: ["0", "R/W"]},
+  {bits: 1, name: "UWE2",  attr: ["0", "R/W"]},
+  {bits: 1, name: "",  attr: ["Reset", "R/W"]},
+]}
+....
+
