@@ -1,0 +1,320 @@
+[[DebugUnit]]
+:imagesdir: {docdir}/../assets/images
+:codedir: {docdir}/../assets/resource/code
+
+== Debug Unit(Optional)
+
+This chapter describes the OpenRISC 1000 debug facility. The debug unit assists software developers in debugging their systems. It provides support for watchpoints, breakpoints and program-flow control registers.
+
+Watchpoints and breakpoint are events triggered by program- or data-flow matching the conditions programmed in the debug registers. Watchpoints do not interfere with the execution of the program-flow except indirectly when they cause a breakpoint. Watchpoints can be counted by Performance Counters Unit.
+
+Breakpoint, unlike watchpoints, also suspends execution of the current program-flow and start trap exception processing. Breakpoint is optional consequence of watchpoints.
+
+=== Features
+
+The OpenRISC 1000 architecture defines eight sets of debug registers. Additional debug register sets can be defined by the implementation itself. The debug unit is optional and the presence of an implementation is indicated by the UPR[DUP] bit.
+
+* Optional implementation
+* Eight architecture defined sets of debug value/compare registers
+* Match signed/unsigned conditions on instruction fetch EA, load/store EA and load/store data
+* Combining match conditions for complex watchpoints
+* Watchpoints can be counted by Performance Counters Unit
+* Watchpoints can generate a breakpoint (trap exception)
+* Counting watchpoints for generation of additional watchpoints
+
+DVR/DCR pairs are used to compare instruction fetch or load/store EA and load/store data to the value stored in DVRs. Matches can be combined into more complex matches and used for generation of watchpoints. Watchpoints can be counted and reported as breakpoint.
+
+image::{imagesdir}/png/figure11-1.png[]
+
+=== Debug Value Registers (DVR0-DVR7)
+
+The debug value registers are 32-bit special-purpose supervisor-level registers accessible with the l.mtspr/l.mfspr instructions in supervisor mode.
+
+The DVRs are programmed with the watchpoint addresses or data by the resident debug software or by the development interface. Their value is compared to the fetch or load/store EA or to the load/store data according to the corresponding DCR. Based on the settings of the corresponding DCR a watchpoint is generated.
+
+include::{imagesdir}/wavedrom/edn/dvr.edn[]
+
+[[DVR]]
+.DVR Field Description
+[%autowidth, float="center", align="center", cols="^,^", options="headers",]
+|===
+|VALUE	|Watchpoint/Breakpoint Address/Data
+|===
+
+=== Debug Control Registers (DCR0-DCR7)
+
+The debug control registers are 32-bit special-purpose supervisor-level registers accessible with the l.mtspr/l.mfspr instructions in supervisor mode.
+
+The DCRs are programmed with the watchpoint settings that define how DVRs are compared to the instruction fetch or load/store EA or to the load/store data.
+
+include::{imagesdir}/wavedrom/edn/dcr.edn[]
+
+[[DCR]]
+.DCR Field Description
+[%autowidth, float="center", align="center", cols="^,^,^,^", options="headers",]
+|===
+|DP	|DVR/DCR Present +
+0 Corresponding DVR/DCR pair is not present +
+1 Corresponding DVR/DCR pair is present
+|CC	|Compare Condition +
+000 Masked +
+001 Equal +
+010 Less than +
+011 Less than or equal +
+100 Greater than +
+101 Greater than or equal +
+110 Not equal +
+111 Reserved
+|SC	|Signed Comparison +
+0 Compare using unsigned integers +
+1 Compare using signed integers
+|CT	|Compare To +
+000 Comparison disabled +
+001 Instruction fetch EA +
+010 Load EA +
+011 Store EA +
+100 Load data +
+101 Store data +
+110 Load/Store E +
+111 Load/Store data
+|===
+
+=== Debug Mode Register 1 (DMR1)
+
+The debug mode register 1 is a 32-bit special-purpose supervisor-level register accessible with the l.mtspr/l.mfspr instructions in supervisor mode.
+
+The DMR1 is programmed with the watchpoint/breakpoint settings that define how DVR/DCR pairs operate and is set by the resident debug software or by the development interface.
+
+include::{imagesdir}/wavedrom/edn/dmr1.edn[]
+
+[[DMR1]]
+.DMR1 Field Description
+[%autowidth, float="center", align="center", cols="^,^,^,^", options="headers",]
+|===
+|CW0	|Chain Watchpoint 0 +
+00 Watchpoint 0 = Match 0 +
+01 Watchpoint 0 = Match 0 & External Watchpoint +
+10 Watchpoint 0 = Match 0 \| External Watchpoint +
+11 Reserved
+|CW1	|Chain Watchpoint 1 +
+00 Watchpoint 1 = Match 1 +
+01 Watchpoint 1 = Match 1 & Watchpoint 0 +
+10 Watchpoint 1 = Match 1 \| Watchpoint 0 +
+11 Reserved
+|CW2	|Chain Watchpoint 2 +
+00 Watchpoint 2 = Match 2 +
+01 Watchpoint 2 = Match 2 & Watchpoint 1 +
+10 Watchpoint 2 = Match 2 \| Watchpoint 1 +
+11 Reserved
+|CW3	|Chain Watchpoint 3 +
+00 Watchpoint 3 = Match 3 +
+01 Watchpoint 3 = Match 3 & Watchpoint 2 +
+10 Watchpoint 3 = Match 3 \| Watchpoint 2 +
+11 Reserved
+|CW4	|Chain Watchpoint 4 +
+00 Watchpoint 4 = Match 4 +
+01 Watchpoint 4 = Match 4 & External Watchpoint +
+10 Watchpoint 4 = Match 4 \| External Watchpoint +
+11 Reserved
+|CW5	|Chain Watchpoint 5 +
+00 Watchpoint 5 = Match 5 +
+01 Watchpoint 5 = Match 5 & Watchpoint 4 +
+10 Watchpoint 5 = Match 5 \| Watchpoint 4 +
+11 Reserved
+|CW6	|Chain Watchpoint 6 +
+00 Watchpoint 6 = Match 6 +
+01 Watchpoint 6 = Match 6 & Watchpoint 5 +
+10 Watchpoint 6 = Match 6 \| Watchpoint 5 +
+11 Reserved
+|CW7	|Chain Watchpoint 7 +
+00 Watchpoint 7 = Match 7 +
+01 Watchpoint 7 = Match 7 & Watchpoint 6 +
+10 Watchpoint 7 = Match 7 \| Watchpoint 6 +
+11 Reserved
+|CW8	|Chain Watchpoint 8 +
+00 Watchpoint 8 = Watchpoint counter 0 match +
+01 Watchpoint 8 = Watchpoint counter 0 match & Watchpoint 3 +
+10 Watchpoint 8 = Watchpoint counter 0 match \| Watchpoint 3 +
+11 Reserved
+|CW9	|Chain Watchpoint 9 +
+00 Watchpoint 9 = Watchpoint counter 1 match +
+01 Watchpoint 9 = Watchpoint counter 1 match & Watchpoint 7 +
+10 Watchpoint 9 = Watchpoint counter 1 match \| Watchpoint 7 +
+11 Reserved
+|ST	|Single-step Trace +
+0 Single-step trace disabled +
+1 Every executed instruction causes trap exception
+|BT	|Branch Trace +
+0 Branch trace disabled +
+1 Every executed branch instruction causes trap exception
+|===
+
+=== Debug Mode Register 2(DMR2)
+
+The debug mode register 2 is a 32-bit special-purpose supervisor-level register accessible with the l.mtspr/l.mfspr instructions in supervisor mode. 
+
+The DMR2 is programmed with the watchpoint/breakpoint settings that define which watchpoints generate a breakpoint and which watchpoint counters are enabled. When a breakpoint happens WBS provides information which watchpoint or several watchpoints caused breakpoint condition. WBS bits are sticky and should be cleared by writing 0 ot them every time a breakpoint condition is processed. DMR2 is set by the resident debug software or by the development interface.
+
+include::{imagesdir}/wavedrom/edn/dmr2.edn[]
+
+[[DMR2]]
+.DMR2 Field Description
+[%autowidth, float="center", align="center", cols="^,^", options="headers",]
+|===
+|WCE0	|Watchpoint Counter Enable 0 +
+0 Counter 0 disabled +
+1 Counter 0 enabled
+|WCE1	|Watchpoint Counter Enable 1 +
+0 Counter 1 disabled +
+1 Counter 1 enabled
+|AWTC	|Assign Watchpoints to Counter +
+00 0000 0000 All Watchpoints increment counter 0 +
+00 0000 0001 Watchpoint 0 increments counter 1 +
+… +
+00 0000 1111 First four watchpoints increment counter 1, rest increment counter 0 +
+… +
+11 1111 1111 All watchpoints increment counter 1
+|WGB	|Watchpoints Generating Breakpoint (trap exception) +
+00 0000 0000 Breakpoint disabled +
+00 0000 0001 Watchpoint 0 generates breakpoint + 
+… +
+01 0000 0000 Watchpoint counter 0 generates breakpoint +
+… +
+11 1111 1111 All watchpoints generate breakpoint
+|WBS	|Watchpoints Breakpoint Status +
+00 0000 0000 No watchpoint caused breakpoint +
+00 0000 0001 Watchpoint 0 caused breakpoint +
+… +
+01 0000 0000 Watchpoint counter 0 caused breakpoint +
+… +
+11 1111 1111 Any watchpoint could have caused breakpoint
+|===
+
+=== Debug Watchpoint Counter Register (DWCR0-DWCR1)
+
+The debug watchpoint counter registers are 32-bit special-purpose supervisor-level registers accessible with the l.mtspr/l.mfspr instructions in supervisor mode.
+
+The DWCRs contain 16-bit counters that count watchpoints programmed in the DMR. The value in a DWCR can be accessed by the resident debug software or by the development interface. DWCRs also contain match values. When a counter reaches the match value, a watchpoint is generated.
+
+include::{imagesdir}/wavedrom/edn/dwcr.edn[]
+
+[[DWCR]]
+.DWCR Field Description
+[%autowidth, float="center", align="center", cols="^,^", options="headers",]
+|===
+|COUNT	|Number of watchpoints programmed in DMR +
+N 16-bit counter of generated watchpoints assigned to this counter
+|MATCH	|N 16-bit value that when matched generates a watchpoint
+|===
+
+=== Debug Stop Register (DSR)
+
+The debug stop register is a 32-bit special-purpose supervisor-level register accessible with the l.mtspr/l.mfspr instructions in supervisor mode.
+
+The DSR specifies which exceptions cause the core to stop the execution of the exception handler and turn over control to development interface. It can be programmed by the resident debug software or by the development interface. 
+
+include::{imagesdir}/wavedrom/edn/dsr.edn[]
+
+[[DSR]]
+.DSR Field Description
+[%autowidth, float="center", align="center", cols="^,^", options="headers",]
+|===
+|RSTE	|Reset Exception +
+0 This exception does not transfer control to the development I/F +
+1 This exception transfers control to the development interface
+|BUSEE	|Bus Error Exception
+0 This exception does not transfer control to the development I/F +
+1 This exception transfers control to the development interface
+|DPFE	|Data Page Fault Exception
+0 This exception does not transfer control to the development I/F +
+1 This exception transfers control to the development interface
+|IPFE	|Instruction Page Fault Exception +
+0 This exception does not transfer control to the development I/F +
+1 This exception transfers control to the development interface
+|TTE	|Tick Timer Exception +
+0 This exception does not transfer control to the development I/F +
+1 This exception transfers control to the development interface
+|AE	          |Exception +
+0 This exception does not transfer control to the development I/F +
+1 This exception transfers control to the development interface
+|IIE	|Illegal Instruction Exception +
+0 This exception does not transfer control to the development I/F +
+1 This exception transfers control to the development interface
+|INTE	|Interrupt Exception +
+0 This exception does not transfer control to the development I/F +
+1 This exception transfers control to the development interface
+|DME	|DTLB Miss Exception +
+0 This exception does not transfer control to the development I/F +
+1 This exception transfers control to the development interface
+|IME	|ITLB Miss Exception +
+0 This exception does not transfer control to the development I/F +
+1 This exception transfers control to the development interface
+|RE	|Range Exception +
+0 This exception does not transfer control to the development I/F +
+1 This exception transfers control to the development interface
+|SCE	|System Call Exception +
+0 This exception does not transfer control to the development I/F +
+1 This exception transfers control to the development interface
+|FPE	|Floating Point Exception +
+0 This exception does not transfer control to the development I/F +
+1 This exception transfers control to the development interface
+|TE	|Trap Exception +
+0 This exception does not transfer control to the development I/F +
+1 This exception transfers control to the development interface
+|===
+
+=== Debug Reason Register (DRR)
+
+The debug reason register is a 32-bit special-purpose supervisor-level register accessible with the l.mtspr/l.mfspr instructions in supervisor mode.
+
+The DRR specifies which event caused the core to stop the execution of program flow and turned control over to the development interface. It should be cleared by the resident debug software or by the development interface.
+
+include::{imagesdir}/wavedrom/edn/drr.edn[]
+
+[[DRR]]
+.DRR Field Description
+[%autowidth, float="center", align="center", cols="^,^,^,^", options="headers",]
+|===
+|RSTE	|Reset Exception +
+0 This exception did not transfer control to the development I/F +
+1 This exception transfered control to the development interface
+|BUSEE	|Bus Error Exception +
+0 This exception did not transfer control to the development I/F +
+1 This exception transfered control to the development interface
+|DPFE	|Data Page Fault Exception +
+0 This exception did not transfer control to the development I/F +
+1 This exception transfered control to the development interface
+|IPFE	|Instruction Page Fault Exception +
+0 This exception did not transfer control to the development I/F +
+1 This exception transfered control to the development interface
+|TTE	|Tick Timer Exception +
+0 This exception did not transfer control to the development I/F +
+1 This exception transfered control to the development interface
+|AE	|Alignment Exception +
+0 This exception did not transfer control to the development I/F +
+1 This exception transfered control to the development interface
+|IIE	|Illegal Instruction Exception +
+0 This exception did not transfer control to the development I/F +
+1 This exception transfered control to the development interface
+|INTE	|Interrupt Exception +
+0 This exception did not transfer control to the development I/F +
+1 This exception transfered control to the development interface
+|DME	|DTLB Miss Exception +
+0 This exception did not transfer control to the development I/F +
+1 This exception transfered control to the development interface
+|IME	|ITLB Miss Exception +
+0 This exception did not transfer control to the development I/F +
+1 This exception transfered control to the development interface
+|RE	|Range Exception +
+0 This exception did not transfer control to the development I/F +
+1 This exception transfered control to the development interface
+|SCE	|System Call Exception +
+0 This exception did not transfer control to the development I/F +
+1 This exception transfered control to the development interface
+|FPE	|Floating Point Exception +
+0 This exception did not transfer control to the development I/F +
+1 This exception transferred control to the development interface
+|TE	|Trap Exception +
+0 This exception did not transfer control to the development I/F +
+1 This exception transferred control to the development interface
+|===

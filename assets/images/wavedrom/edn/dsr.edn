@@ -1,0 +1,28 @@
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 1, name: "DME", attr: ["0", "R/W"]},
+  {bits: 1, name: "IME", attr: ["0", "R/W"]},
+  {bits: 1, name: "RE", attr: ["0", "R/W"]},
+  {bits: 1, name: "SCE", attr: ["0", "R/W"]},
+  {bits: 1, name: "FPE", attr: ["0", "R/W"]},
+  {bits: 1, name: "TE", attr: ["0", "R/W"]},
+  {bits: 17, name: "Reserved", attr: ["X", "R/W"]},
+  {bits: 1, name: "", attr: ["Reset", "R/W"]},
+]}
+....
+
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 1, name: "RSTE", attr: ["0", "R/W"]},
+  {bits: 1, name: "BUSEE", attr: ["0", "R/W"]},
+  {bits: 1, name: "DPFE", attr: ["0", "R/W"]},
+  {bits: 1, name: "IPFE", attr: ["0", "R/W"]},
+  {bits: 1, name: "TTE", attr: ["0", "R/W"]},
+  {bits: 1, name: "AE", attr: ["0", "R/W"]},
+  {bits: 1, name: "IEE", attr: ["0", "R/W"]},
+  {bits: 1, name: "INTE", attr: ["0", "R/W"]},
+  {bits: 1, name: "", attr: ["Reset", "R/W"]},
+]}
+....

@@ -1,0 +1,27 @@
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 2, name: "CW8", attr: ["0", "R/W"]},
+  {bits: 2, name: "CW9", attr: ["0", "R/W"]},
+  {bits: 2, name: "Res", attr: ["0", "R/W"]},
+  {bits: 1, name: "ST", attr: ["0", "R/W"]},
+  {bits: 1, name: "BT", attr: ["X", "R"]},
+  {bits: 7, name: "Reserved", attr: ["X", "R"]},
+  {bits: 1, name: "", attr: ["Reset", "R/W"]},
+]}
+....
+
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 2, name: "CW0", attr: ["0", "R/W"]},
+  {bits: 2, name: "CW1", attr: ["0", "R/W"]},
+  {bits: 2, name: "CW2", attr: ["0", "R/W"]},
+  {bits: 2, name: "CW3", attr: ["0", "R/W"]},
+  {bits: 2, name: "CW4", attr: ["0", "R/W"]},
+  {bits: 2, name: "CW5", attr: ["0", "R/W"]},
+  {bits: 2, name: "CW6", attr: ["0", "R/W"]},
+  {bits: 2, name: "CW7", attr: ["0", "R/W"]},
+  {bits: 1, name: "", attr: ["Reset", "R/W"]},
+]}
+....

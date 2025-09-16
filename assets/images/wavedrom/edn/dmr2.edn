@@ -1,0 +1,11 @@
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 1, name: "WCE0", attr: ["0", "R/W"]},
+  {bits: 1, name: "WCE1", attr: ["0", "R/W"]},
+  {bits: 10, name: "AWTC", attr: ["0", "R/W"]},
+  {bits: 10, name: "WGB", attr: ["0", "R/W"]},
+  {bits: 10, name: "WBS", attr: ["0", "R"]},
+  {bits: 1, name: "", attr: ["Reset", "R/W"]},
+]}
+....
