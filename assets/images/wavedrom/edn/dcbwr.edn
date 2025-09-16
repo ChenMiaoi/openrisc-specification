@@ -1,0 +1,7 @@
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 32, name: "EA", attr: ["0", "Write Only"]},
+  {bits: 1, name: "", attr: ["Reset", "R/W"]},
+]}
+....

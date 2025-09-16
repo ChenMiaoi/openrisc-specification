@@ -1,0 +1,280 @@
+[[CacheModel]]
+:imagesdir: {docdir}/../assets/images
+:codedir: {docdir}/../assets/resource/code
+
+== Cache Model & Cache Coherency
+
+This chapter describes the OpenRISC 1000 cache model and architectural control to maintain cache coherency in multiprocessor environment.
+
+Note that this chapter describes the cache model and cache coherency mechanism from the perspective of the programming model. As such, it describes the cache management principles, the cache coherency mechanisms and the cache control registers. The hardware implementation details that are invisible to the OpenRISC 1000 programming model, such as cache organization and size, are not contained in the architectural definition.
+
+The function of the cache management registers depends on the implementation of the cache(s) and the setting of the memory/cache access attributes. For a program to execute properly on all OpenRISC 1000 processor implementations, software should assume a Harvard cache model. In cases where a processor is implemented without a cache, the architecture guarantees that writing to cache registers will not halt execution. For example a processor without cache should simply ignore writes to cache management registers. A processor with a Stanford cache model should simply ignore writes to instruction cache management registers. In this manner, programs written for separate instruction and data caches will run on all compliant implementations.
+
+=== Cache Special-Purpose Registers
+
+Table 9-1 summarizes the registers that the operating system uses to manage the cache(s).
+For implementations that have unified cache, registers that control the data and instruction caches are merged and available at the same time both as data and intruction cache registers.
+
+[[CacheRegisters]]
+.Cache Registers
+[%autowidth, float="center", align="center", cols="^,^,^,^,^,^", options="headers",]
+|===
+|*GRP #*	|*REG #*	|*REG NAME*	|*USER MODE*	|*SUPV MODE*	|*DESCRIPTION*
+|3	|0	|DCCR	|–	|R/W	|Data Cache Control Register
+|3	|1	|DCBPR	|W	|W	|Data Cache Block Prefetch Register
+|3	|2	|DCBFR	|W	|W	|Data Cache Block Flush Register
+|3	|3	|DCBIR	|–	|W	|Data Cache Block Invalidate Register
+|3	|4	|DCBWR	|W	|W	|Data Cache Block Write-back Register
+|3	|5	|DCBLR	|-	|W	|Data Cache Block Lock Register
+|4	|0	|ICCR	|–	|R/W	|Instruction Cache Control Register
+|4	|1	|ICBPR	|W	|W	|Instruction Cache Block PreFetch Register
+|4	|2	|ICBIR	|W	|W	|Instruction Cache Block Invalidate Register
+|4	|3	|ICBLR	|-	|W	|Instruction Cache Block Lock Register
+|===
+
+==== Data Cache Control Register
+
+The data cache control register is a 32-bit special-purpose register accessible with the l.mtspr/l.mfspr instructions in supervisor mode. 
+
+The DCCR controls the operation of the data cache.
+
+include::{imagesdir}/wavedrom/edn/dccr.edn[]
+
+[[DDCR]]
+.DDCR Field Descriptions
+[%autowidth, float="center", align="center", cols="^,^", options="headers",]
+|===
+|EW	|Enable Ways +
+0000 0000 All ways disabled/locked +
+… +
+1111 1111 All ways enabled/unlocked
+|===
+
+If data cache does not implement way locking, the DCCR is not required to be implemented.
+
+==== Instruction Cache Control Register
+
+The instruction cache control register is a 32-bit special-purpose register accessible with the l.mtspr/l.mfspr instructions in supervisor mode.
+ 
+The ICCR controls the operation of the instruction cache.
+
+include::{imagesdir}/wavedrom/edn/iccr.edn[]
+
+[[ICCR]]
+.ICCR Field Descriptions
+[%autowidth, float="center", align="center", cols="^,^", options="headers",]
+|===
+|EW	|Enable Ways +
+0000 0000 All ways disabled/locked +
+… +
+1111 1111 All ways enabled/unlocked
+|===
+
+If the instruction cache does not implement way locking, the ICCR is not required to be implemented.
+
+=== Cache Management
+
+This section describes special-purpose cache management registers for both data and instruction caches.
+
+Memory accesses caused by cache management are not recorded (unlike load or store instructions) and cannot invoke any exception.
+
+Instruction caches do not need to be coherent with the memory or caches of other processors. Software must make the instruction cache coherent with modified instructions in the memory. A typical way to accomplish this is:
+
+1. Data cache block write-back (update of the memory)
+2. l.csync (wait for update to finish)
+3. Instruction cache block invalidate (clear instruction cache block)
+4. Flush pipeline
+
+==== Data Cache Block Prefetch (Optional)
+
+The data cache block prefetch register is an optional special-purpose register accessible with the l.mtspr/l.mfspr instructions in both user and supervisor modes. It is 32 bits wide in 32-bit implementations and 64 bits wide in 64-bit implementations. An implementation may choose not to implement this register and ignore all writes to this register.
+
+The DCBPR is written with the effective address and the corresponding block from memory is prefetched into the cache. Memory accesses are not recorded (unlike load or store instructions) and cannot invoke any exception.
+
+A data cache block prefetch is used strictly for improving performance.
+
+include::{imagesdir}/wavedrom/edn/dcbpr.edn[]
+
+[[DCBPR]]
+.DCBPR Field Descriptions
+[%autowidth, float="center", align="center", cols="^,^", options="headers",]
+|===
+|EA	|Effective Address +
+EA that targets byte inside cache block
+|===
+
+==== Data Cache Block Flush
+
+The data cache block flush register is a special-purpose register accessible with the l.mtspr/l.mfspr instructions in both user and supervisor modes. It is 32 bits wide in 32-bit implementations and 64 bits wide in 64-bit implementations.
+
+The DCBFR is written with the effective address. If coherency is required then the corresponding:
+
+* Unmodified data cache block is invalidated in all processors.
+* Modified data cache block is written back to the memory and invalidated in all processors.
+* Missing data cache block in the local processor causes that modified data cache block in other processor is written back to the memory and invalidated. If other processors have unmodified data cache block, it is just invalidated in all processors.
+
+If coherency is not required then the corresponding:
+
+* Unmodified data cache block in the local processor is invalidated.
+* Modified data cache block is written back to the memory and invalidated in local processor.
+* Missing cache block in the local processor does not cause any action.
+
+include::{imagesdir}/wavedrom/edn/dcbfr.edn[]
+
+[[DCBFR]]
+.DCBFR Field Descriptions
+[%autowidth, float="center", align="center", cols="^,^", options="headers",]
+|===
+|EA	|Effective Address +
+EA that targets byte inside cache block
+|===
+
+==== Data Cache Block Invalidate
+
+The data cache block invalidate register is a special-purpose register accessible with the l.mtspr/l.mfspr instructions in supervisor mode. It is 32 bits wide in 32-bit implementations and 64 bits wide in 64-bit implementations.
+
+The DCBIR is written with the effective address. If coherency is required then the corresponding:
+
+* Unmodified data cache block is invalidated in all processors.
+* Modified data cache block is invalidated in all processors.
+* Missing data cache block in the local processor causes that data cache blocks in other processors are invalidated. 
+
+If coherency is not required then corresponding:
+
+* Unmodified data cache block in the local processor is invalidated.
+* Modified data cache block in the local processor is invalidated.
+* Missing cache block in the local processor does not cause any action.
+
+include::{imagesdir}/wavedrom/edn/dcbir.edn[]
+
+[[DCBIR]]
+.DCBIR Field Descriptions
+[%autowidth, float="center", align="center", cols="^,^", options="headers",]
+|===
+|EA	|Effective Address +
+EA that targets byte inside cache block
+|===
+
+==== Data Cache Block Write-Back
+
+The data cache block write-back register is a special-purpose register accessible with the l.mtspr/l.mfspr instructions in both user and supervisor modes. It is 32 bits wide in 32-bit implementations and 64 bits wide in 64-bit implementations.
+
+The DCBWR is written with the effective address. If coherency is required then the corresponding data cache block in any of the processors is written back to memory if it was modified. If coherency is not required then the corresponding data cache block in the local processor is written back to memory if it was modified.
+
+include::{imagesdir}/wavedrom/edn/dcbwr.edn[]
+
+[[DCBWR]]
+.DCBWR Field Descriptions
+[%autowidth, float="center", align="center", cols="^,^", options="headers",]
+|===
+|EA	|Effective Address +
+EA that targets byte inside cache block
+|===
+
+==== Data Cache Block Lock (Optional)
+
+The data cache block lock register is an optional special-purpose register accessible with the l.mtspr/l.mfspr instructions in both user and supervisor modes. It is 32 bits wide in a 32-bit implementation and 64 bits wide in a 64-bit implementation.
+
+The DCBLR is written with the effective address. The corresponding data cache block in the local processor is locked.
+
+If all blocks of the same set in all cache ways are locked, then the cache refill may automatically unlock the least-recently used block.
+
+include::{imagesdir}/wavedrom/edn/dcblr.edn[]
+
+[[DCBLR]]
+.DCBLR Field Descriptions
+[%autowidth, float="center", align="center", cols="^,^", options="headers",]
+|===
+|EA	|Effective Address +
+EA that targets byte inside cache block
+|===
+
+==== Instruction Cache Block Prefetch (Optional)
+
+The instruction cache block prefetch register is an optional special-purpose register accessible with the l.mtspr/l.mfspr instructions in both user and supervisor modes. It is 32 bits wide in 32-bit implementations and 64 bits wide in 64-bit implementations. An implementation may choose not to implement this register and ignore all writes to this register.
+
+The ICBPR is written with the effective address and the corresponding block from memory is prefetched into the instruction cache. 
+
+Instruction cache block prefetch is used strictly for improving performance.
+
+include::{imagesdir}/wavedrom/edn/icbpr.edn[]
+
+[[ICBPR]]
+.ICBPR Field Descriptions
+[%autowidth, float="center", align="center", cols="^,^", options="headers",]
+|===
+|EA	|Effective Address +
+EA that targets byte inside cache block
+|===
+
+==== Instruction Cache Block Invalidate
+
+The instruction cache block invalidate register is a special-purpose register accessible with the l.mtspr/l.mfspr instructions in both user and supervisor modes. It is 32 bits wide in 32-bit implementations and 64 bits wide in 64-bit implementations.
+
+The ICBIR is written with the effective address. If coherency is required then the corresponding instruction cache blocks in all processors are invalidated. If coherency is not required then the corresponding instruction cache block is invalidated in the local processor.
+
+include::{imagesdir}/wavedrom/edn/icbir.edn[]
+
+[[ICBIR]]
+.ICBIR Field Descriptions
+[%autowidth, float="center", align="center", cols="^,^", options="headers",]
+|===
+|EA	|Effective Address +
+EA that targets byte inside cache block
+|===
+
+<<<
+
+==== Instruction Cache Block Lock (Optional)
+
+The instruction cache block lock register is an optional special-purpose register accessible with the l.mtspr/l.mfspr instructions in both user and supervisor modes. It is 32 bits wide in 32-bit implementations and 64 bits wide in 64-bit implementations.
+
+The ICBLR is written with the effective address. The corresponding instruction cache block in the local processor is locked.
+
+If all blocks of the same set in all cache ways are locked, then the cache refill may automatically unlock the least-recently used block.
+
+Missing cache block in the local processor does not cause any action.
+
+include::{imagesdir}/wavedrom/edn/icblr.edn[]
+
+[[ICBLR]]
+.ICBLR Field Descriptions
+[%autowidth, float="center", align="center", cols="^,^", options="headers",]
+|===
+|EA	|Effective Address +
+EA that targets byte inside cache block
+|===
+
+=== Cache/Memory Coherency
+
+The primary role of the cache coherency system is to synchronize cache content with other caches and with the memory and to provide the same image of the memory to all devices using the memory.
+
+The architecture provides several features to implement cache coherency. In systems that do not provide cache coherency with the PTE attributes (because they do not implement a memory management unit), it may be provided through explicit cache management.
+
+Cache coherency in systems with virtual memory can be provided on a page-by-page basis with PTE attributes. The attributes are:
+
+* Cache Coherent (CC Attribute)
+* Caching-Inhibited (CI Attribute)
+* Write-Back Cache (WBC Attribute)
+
+When the memory/cache attributes are changed, it is imperative that the cache contents should reflect the new attribute settings. This usually means that cache blocks must be flushed or invalidated.
+
+==== Pages Designated as Cache Coherent Pages
+
+This attribute improves performance of the systems where cache coherency is performed with hardware and is relatively slow. Memory pages that do not need cache coherency are marked with CC=0 and only memory pages that need cache coherency are marked with CC=1. When an access to shared resource is made, the local processor will assert some kind of cache coherency signal and other processors will respond if they have a copy of the target location in their caches.
+
+To improve performance of uniprocessor systems, memory pages should not be designated as CC=1.
+
+==== Pages Designated as Caching-Inhibited Pages
+
+Memory accesses to memory pages designated with CI=1 are always performed directly into the main memory, bypassing all caches. Memory pages designated with CI=1 are not loaded into the cache and the target content should never be available in the cache. To prevent any accident copy of the target location in the cache, whenever the operating system sets a memory page to be caching-inhibited, it should flush the corresponding cache blocks.
+
+Multiple accesses may be merged into combined accesses except when individual accesses are separated by l.msync or l.csync or l.psync.
+
+==== Pages Designated as Write-Back Cache Pages
+
+Store accesses to memory pages designated with WBC=0 are performed both in data cache and memory. If a system uses multilevel hierarchy caches, a store must be performed to at least the depth in the memory hierarchy seen by other processors and devices.
+
+Multiple stores may be merged into combined stores except when individual stores are separated by l.msync or l.sync or l.psync. A store operation may cause any part of the cache block to be written back to main memory.
+
+Store accesses to memory pages designated with WBC=1 are performed only to the local data cache. Data from the local data cache can be copied to other caches and to main memory when copy-back operation is required. WBC=1 improves system performance, however it requires cache snooping hardware support in data cache controllers to guarantee cache coherency.
