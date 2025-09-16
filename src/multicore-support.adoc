@@ -1,0 +1,102 @@
+[[MulticoreSupport]]
+:imagesdir: {docdir}/../assets/images
+:codedir: {docdir}/../assets/resource/code
+
+== Multicore Support
+
+This chapter describes the OpenRISC 1000 support for multicore system configurations. This section is targeted at hardware integrators and operating system designers. 
+
+=== Introduction
+
+Multicore support is made possible by architecture facilities which include:
+
+* Atomic memory operations as described in the Atomicity section
+* Cache Coherency between multiple cores as described in the Cache/Memory Coherency section
+* Core Identification registers to identify which processor is running
+
+For a CPU architecture these features should be enough, but for a system design there are some additional considerations that need to be made.  This chapter introduces some suggestions for OpenRISC multicore architectures to handle:
+
+* Inter processor communication
+* Multicore bootstrapping
+* Timer Synchronization
+
+=== Inter Processor Communication
+
+In a multicore configuration each processor needs a way to communicate with other processors.  This is needed for message sending and interrupt balancing.  In OpenRISC each core has a full interrupt controller with 32 interrupt lines as described in Programmable Interrupt Controller (Optional).  In multicore configurations the internal PIC is leveraged by routing all interrupts to all cores.  The Open Multi-Processor Interrupt Controller (OMPIC) is a memory mapped programmable interrupt source providing a mechanism for Inter Processor Interrupts (IPI) enabling message sending and interrupt balancing.
+
+The OMPIC supports up to 8192 cores via 13 bit DST_CORE addressing field.
+
+.Multicore Interconnect with OMPIC
+image::{imagesdir}/png/figure10-1.png[width=480, align="center"]
+
+The above Figure 10-1 shows a multicore system connected with OMPIC.  The example uart device is connected to each core.  The uart interrupt would typically be masked in all but one core.
+
+Each core communicates with other cores by writing requests to it’s own designated control register specifying the destination core in DST_CORE.  When the control register is written to with the IRQ_GEN field asserted the associated IRQ line will be raised to signal the destination core of a pending message.  In the destination core’s interrupt handler it shall write to its own control register with IRQ_ACK asserted to clear the interrupt.  It will then read it’s own status register to receive the data message.  It is important to ack the IRQ then read the status register in this order to ensure messages are not lost.
+
+==== OMPIC Control Registers
+
+The OMPIC control registers are registers which are written to to send messages to another core or to Acknowledge interrupts.  Cores will typically only write to their own control register. It is not typically useful to read from the control register
+	
+The status registers are located at memory mapped addresses stem:[OMPIC\_BASE + (Core ID) * 8]. For example:
+
+* stem:[OMPIC\_BASE + 0x0]
+* stem:[OMPIC\_BASE + 0x8]
+* stem:[OMPIC\_BASE + 0x10]
+
+include::{imagesdir}/wavedrom/edn/ompic-c.edn[]
+
+[[OMPIC-C]]
+.OMPIC Control Field Description
+[%autowidth, float="center", align="center", cols="^,^", options="headers",]
+|===
+|IRQ_ACK	|IRQ Acknowledge +
+If asserted, clears the IRQ of the core associated with this control register.
+|IRQ_GEN	|IRQ Generate +
+If asserted, raises the IRQ of the core designated by DST_CORE.
+|DST_CORE	|Destination Core +
+The core to perform the operation on.
+|DATA	|Data +
+The data to send to the destination core.
+|===
+
+==== OMPIC Status Registers
+
+The OMPIC status registers are read only registers which are updated upon writes to control registers.
+
+The status registers are located at memory mapped addresses stem:[OMPIC\_BASE + ((Core ID) * 8) + 4].  For example:
+
+* stem:[OMPIC\_BASE + 0x4]
+* stem:[OMPIC\_BASE + 0xc]
+* stem:[OMPIC\_BASE + 0x14]
+
+include::{imagesdir}/wavedrom/edn/ompic-s.edn[]
+
+[[OMPIC-S]]
+.OMPIC Status Field Description
+[%autowidth, float="center", align="center", cols="^,^", options="headers",]
+|===
+|IRQ_PEND	|IRQ Pending +
+Signals that the IRQ for this core is pending to be serviced.
+|SRC	|Source Core +
+The core that sent the last message to this core.
+|DATA	|Data +
+The pending data to be received for this core.
+|===
+
+=== Temporary Storage
+
+During exception handling it is often required to temporarily store register values before the exception stack frame is initialized or even in the case that no stack is required.  It is recommended to use Shadow Registers for this temporary storage mechanism. For example:
+
+include::{codedir}/temporary-storage.adoc[]
+
+=== Multicore bootstrapping
+
+When booting a multicore OpenRISC system, upon reset all cores will begin execution at the reset vector.  It is recommended that the core 0, the primary core, performs all hardware initialization and signals the secondary cores to initialize.
+
+The secondary cores should wait to initialize until a signal is received from the primary core.  Secondary cores can wait during to initialize by either spinning waiting for the initialization signal or by engaging the Power Management Doze mode and waiting for an interrupt.
+
+The initialization signal is typically a variable stored in memory.  The variable initially will be 0, the primary core will set it to the id of the core to initialize signaling each core to boot one by one.
+
+=== Timer Synchronization
+
+When running a multicore OpenRISC system it is typically useful for the Tick Timers of all cores to be synchronized.  This is not guaranteed as processor reset and timer enablement may not have been triggered at the same time.  To synchronize the Tick Timer it is recommended to either provide an external global timer device or use a software synchronization routine.

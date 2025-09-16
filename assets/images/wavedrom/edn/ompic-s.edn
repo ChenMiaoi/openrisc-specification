@@ -1,0 +1,17 @@
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 1, name: "IRQ_PEND", attr: ["0", "R"]},
+  {bits: 1, name: "Reserved", attr: ["X", "-"]},
+  {bits: 1, name: "", attr: ["Reset", "R/W"]},
+]}
+....
+
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 16, name: "DATA", attr: ["0", "R"]},
+  {bits: 14, name: "SRC_CORE", attr: ["0", "R"]},
+  {bits: 1, name: "", attr: ["Reset", "R/W"]},
+]}
+....

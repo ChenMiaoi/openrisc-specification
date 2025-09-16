@@ -68,5 +68,6 @@ include::exception-mode.adoc[]
 include::memory-mode.adoc[]
 include::memory-management.adoc[]
 include::cache-model.adoc[]
+include::multicore-support.adoc[]
 
 include::index.adoc[]

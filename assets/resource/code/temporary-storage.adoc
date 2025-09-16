@@ -1,0 +1,13 @@
+[NOTE]
+====
+[source, asm]
+  #define SPR_GPR_BASE      (0 + 1024)
+  #define SPR_SHADOW_GPR(x) ((x) + SPR_GPR_BASE + 32)
+  
+  l.mtspr r0,r5,SPR_SHADOW_GPR(5)
+  .. handle exception ..
+  l.mfspr r5,r0,SPR_SHADOW_GPR(5)
+  l.rfe
+
+Note, if this method is used it means that fast context switching cannot be used with the multicore system.
+====
