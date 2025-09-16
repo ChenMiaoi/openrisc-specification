@@ -30,3 +30,4 @@ jobs:
           tag_name: draft-${{ github.run_number }}
           body: "Automatically built and released PDF from GitHub Actions"
           files: build/openrisc-manual.pdf
+          token: ${{ secrets.OPENRISC_TOKEN }}
