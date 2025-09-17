@@ -1,0 +1,93 @@
+[[TickTimer]]
+:imagesdir: {docdir}/../assets/images
+:codedir: {docdir}/../assets/resource/code
+
+== Tick Timer Facility (Optional)
+
+This chapter describes the OpenRISC 1000 tick timer facility. It is optional and an implementation may chose whether or not to implement it. UPR[TTP] specifies whether or not the tick timer facility is present.
+
+The Tick Timer is used to schedule operating system and user tasks on regular time basis or as a high precision time reference.
+
+The Tick Timer facility is enabled with TTMR[M]. TTCR is incremented with each clock cycle and a tick timer interrupt can be asserted whenever the lower 28 bits of TTCR match TTMR[TP] and TTMR[IE] is set.
+
+TTCR restarts counting from zero when a match event happens and TTMR[M] is 0x1. If TTMR[M] is 0x2, TTCR is stoped when match event happens and TTCR must be changed to start counting again. When TTMR[M] is 0x3, TTCR keeps counting even when  match event happens.
+
+=== Features
+
+The OpenRISC 1000 architecture defines a tick timer facility with the following features:
+
+* Maximum timer count of 2^32 clock cycles
+* Maximum time period of 2^28 clock cycles between interrupts
+* Maskable tick timer interrupt
+* Single run, restartable counter, or continues counter
+
+image::{imagesdir}/png/figure15-1.png[width=480, align="center"]
+
+=== Timer interrupts
+
+A timer interrupt will happen everytime TTMR[IE] bit is set and TTMR[TP]
+matches the lower 28 bits of the TTCR SPR, the top 4 bits are ignored for the comparison. When an interrupt is pending the TTMR[IP] bit will be set and the interrupt will be asserted to the cpu core until it is cleared by writting a 0 to the TTMR[IP] bit. However, if the TTMR[IE] bit was not set when a match condition occured no interrupt will be asserted and the TTMR[IP] bit won't be set unless it has not been cleared from a previous interrupt. The TTMR[IE] bit is not meant as a mask bit, SR[TEE] is provided for that purpose.
+
+=== Timer modes
+
+It is up to the programmer to ensure that the TTCR SPR is set to a sane value before the timer mode is programmed. When the timing mode is programmed into the timer by setting TTMR[M], the TTCR SPR is not preset to any predefined value, including 0. If the lower 28 bits of the TTCR SPR is numerically greater than what was programmed into TTMR[TP] then the timer will only assert the timer interrupt when the lower 28 bits of the TTCR SPR have wrapped around to 0 and counted up to the match value programmed into TTMR[TP].
+
+==== Disable timer
+
+In this mode the timer does not increment the TTCR spr. Though note that the timer interrupt is independent from the timer mode and as such the timer interrupt is not disabled when the timer is disabled.
+
+==== Auto-restart timer
+
+When the timer is set to auto-restart mode, the timer will reset the TTCR spr to 0 as soon as the lower 28 bits of the TTCR spr match TTMR[TP] and the timer interrupt will be asserted to the cpu core if the TTMR[IE] bit has been set.
+
+==== One-shot timer
+
+In one-shot timeing mode, the timer stops counting as soon as a match condition has been reached. Although the timer has in effect been disabled (and can't be restarted by writting to the TTCR spr) the TTMR[M] bits shall still indicate that the timer is in one-shot mode and not that it has been disabled. Care should be taken that the timer interrupt has been masked (or disabled) after the match condition has been reached, or else the cpu core will get a spurious timer interrupt.
+
+==== Continuous timer
+
+In the event that a match condition has been reached, the counter does not stop but rather keeps counting from the value of the TTCR spr and the timer interrupt will be asserted if the TTMR[IE] bit has been set.
+
+=== Tick Timer Mode Register (TTMR)
+
+The tick timer mode register is a 32-bit special-purpose supervisor-level register accessible with the l.mtspr/l.mfspr instructions in supervisor mode.
+The TTMR is programmed with the time period of the tick timer as well as with the mode bits that control operation of the tick timer.
+
+include::{imagesdir}/wavedrom/edn/ttmr.edn[]
+
+[[TTMR]]
+.TTMR Field Description
+[%autowidth, float="center", align="center", cols="^,^", options="headers",]
+|===
+|TP	|Time Period +
+0x0000000 Shortest comparison time period +
+… +
+0xFFFFFFF Longest comparison time period
+|IP	|Interrupt Pending +
+0 Tick timer interrupt is not pending +
+1 Tick timer interrupt pending (write '0' to clear it)
+|IE	|Interrupt Enable +
+0 Tick timer does not generate tick timer interrupt +
+1 Tick timer generates tick timer interrupt when TTMR[TP] matches TTCR[27:0]
+|M	|Mode +
+00 Tick timer is disabled +
+01 Timer is restarted when TTMR[TP] matches TTCR[27:0] +
+10 Timer stops when TTMR[TP] matches TTCR[27:0] (change TTCR to resume counting) +
+11 Timer does not stop when TTMR[TP] matches TTCR[27:0]
+|===
+
+=== Tick Timer Count Register (TTCR)
+
+The tick timer count register is a 32-bit special-purpose register accessible with the l.mtspr/l.mfspr instructions in supervisor mode and as read-only register in user mode if enabled in SR[SUMRA].
+
+TTCR holds the current value of the timer.
+
+include::{imagesdir}/wavedrom/edn/ttcr.edn[]
+
+[[TTCR]]
+.TTCR Field Description
+[%autowidth, float="center", align="center", cols="^,^", options="headers",]
+|===
+|CNT	|Count +
+32-bit incrementing counter
+|===
