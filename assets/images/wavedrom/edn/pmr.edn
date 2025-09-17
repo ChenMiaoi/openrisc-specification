@@ -1,0 +1,19 @@
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 24, name: "Reserved", attr: ["X", "R"]},
+  {bits: 1, name: "", attr: ["0", "R/W"]},
+]}
+....
+
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 4, name: "SDF", attr: ["0", "R/W"]},
+  {bits: 1, name: "DME", attr: ["0", "R/W"]},
+  {bits: 1, name: "SME", attr: ["0", "R/W"]},
+  {bits: 1, name: "DCGE", attr: ["0", "R/W"]},
+  {bits: 1, name: "SUME", attr: ["0", "R/W"]},
+  {bits: 1, name: "", attr: ["0", "R/W"]},
+]}
+....

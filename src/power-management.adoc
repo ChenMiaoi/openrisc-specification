@@ -1,0 +1,65 @@
+[[PowerManagement]]
+:imagesdir: {docdir}/../assets/images
+:codedir: {docdir}/../assets/resource/code
+
+== Power Management(Optional)
+
+This chapter describes the OpenRISC 1000 power management facility. The power management facility is optional and implementation may choose which features to implement, and which not. UPR[PMP] indicates whether power management is implemented or not.
+
+Note that this chapter describes the architectural control of power management from the perspective of the programming model. As such, it does not describe technology specific optimizations or implementation techniques.
+
+=== Features
+
+The OpenRISC 1000 architecture defines five architectural features for minimizing power consumption:
+
+* slow down feature
+* doze mode
+* sleep mode
+* suspend mode
+* dynamic clock gating feature
+
+The slow down feature takes advantage of the low-power dividers in external clock generation circuitry to enable full functionality, but at a lower frequency so that power consumption is reduced.
+
+The slow down feature is software controlled with the 4-bit value in PMR[SDF]. A lower value specifies higher expected performance from the processor core. Whether this value controlsoftware initiates the doze mode, software processing on the core suspends. The clocks to the processor internal units are disabled except to the internal tick timer and programmable interrupt controller. However other on-chip blocks (outside of the processor block) can continue to function as normal.
+
+The processor should leave doze mode and enter normal mode when a pending interrupt occurss a processor clock frequency or some other implementation specific feature is irrelevant to the controlling software. Usually PMR[SDF] is dynamically set by the operating system’s idle routine, that monitors the usage of the processor core.
+When .
+
+In sleep mode, all processor internal units are disabled and clocks gated. Optionally, an implementation may choose to lower the operating voltage of the processor core.
+The processor should leave sleep mode and enter normal mode when a pending interrupt occurs.
+
+In suspend mode, all processor internal units are disabled and clocks gated. Optionally, an implementation may choose to lower the operating voltage of the processor core.
+The processor enters normal mode when it is reset. Software may implement a reset exception handler that refreshes system memory and updates the RISC with the state prior to the suspension.
+
+If enabled, the clock-gating feature automatically disables clock subtrees to major processor internal units on a clock cycle basis. These blocks are usually the CPU, FPU/VU, IC, DC, IMMU and DMMU. This feature can be used in a combination with other power management features and low-power modes.
+
+Cache or MMU blocks that are already disabled when software enables this feature, have completely disabled clock subtrees until clock gating is disabled or until the blocks are again enabled.
+
+=== Power Management Register (PMR)
+
+The power management register is a 32-bit special-purpose supervisor-level register accessible with the l.mtspr/l.mfspr instructions in supervisor mode.
+
+PMR is used to enable or disable power management features and modes.
+
+include::{imagesdir}/wavedrom/edn/pmr.edn[]
+
+[[PMR]]
+.PMR Field Description
+[%autowidth, float="center", align="center", cols="^,^", options="headers",]
+|===
+|SDF	|Slow Down Factor +
+0 Full speed +
+1-15 Logarithmic clock frequency reduction
+|DME	|Doze Mode Enable +
+0 Doze mode not enabled +
+1 Doze mode enabled
+|SME	|Sleep Mode Enable +
+0 Sleep mode not enabled +
+1 Sleep mode enabled
+|DCGE	|Dynamic Clock Gating Enable +
+0 Dynamic clock gating not enabled +
+1 Dynamic clock gating enabled
+|SUME	|Suspend Mode Enable +
+0 Suspend mode not enabled +
+1 Suspend mode enabled
+|===
