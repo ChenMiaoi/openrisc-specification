@@ -72,5 +72,6 @@ include::multicore-support.adoc[]
 include::debug-unit.adoc[]
 include::performance-counters.adoc[]
 include::power-management.adoc[]
+include::programmable-interrupt.adoc[]
 
 include::index.adoc[]

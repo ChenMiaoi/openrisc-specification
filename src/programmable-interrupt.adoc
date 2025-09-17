@@ -1,0 +1,57 @@
+[[ProgrammableInterrupt]]
+:imagesdir: {docdir}/../assets/images
+:codedir: {docdir}/../assets/resource/code
+
+== Programmable Interrupt Controller (Optional)
+
+This chapter describes the OpenRISC 1000 level one programmable interrupt controller. The interrupt controller facility is optional and an implementation may chose whether or not to implement it. If it is not implemented, interrupt input is directly connected to interrupt exception inputs. UPR[PICP] specifies whether the programmable interrupt controller is implemented or not.
+
+The Programmable Interrupt Controller has two special-purpose registers and 32 maskable interrupt inputs. If implementation requires permanent unmasked interrupt inputs, it can use interrupt inputs [1:0] and PICMR[1:0] should be fixed to one.
+
+=== Features
+
+The OpenRISC 1000 architecture defines an interrupt controller facility with up to 32 interrupt inputs:
+
+image::{imagesdir}/png/figure14-1.png[]
+
+=== PIC Mask Register (PICMR)
+
+The interrupt controller mask register is a 32-bit special-purpose supervisor-level register accessible with the l.mtspr/l.mfspr instructions in supervisor mode.
+
+PICMR is used to mask or unmask 32 programmable interrupt sources.
+
+include::{imagesdir}/wavedrom/edn/picmr.edn[]
+
+[[PICMR]]
+.PICMR Field Description
+[%autowidth, float="center", align="center", cols="^,^", options="headers",]
+|===
+|IUM	|Interrupt UnMask +
+0x00000000 All interrupts are masked +
+0x00000001 Interrupt input 0 is enabled, all others are masked +
+… +
+0xFFFFFFFF All interrupt inputs are enabled
+|===
+
+=== PIC Status Register (PICSR)
+
+The interrupt controller status register is a 32-bit special-purpose supervisor-level register accessible with the l.mtspr/l.mfspr instructions in supervisor mode.
+
+PICSR is used to determine the status of each PIC interrupt input. PIC can support level-triggered interrupts or combination of level-triggered and edge-triggered. Most implementations today only support level-triggered interrupts. 
+
+For level-triggered implementations bits in PICSR simply represent level of interrupt inputs. Interrupts are cleared by taking appropriate action at the device to negate the source of the interrupt.Writing a '1' or a '0' to bits in the PICSR that reflect a level-triggered source must have no effect on PICSR content. 
+
+The atomic way to clear an interrupt source which is edge-triggered is by writing a '1' to the corresponding bit in the PICSR. This will clear the underlying latch for the edge-triggered source. Writing a '0' to the corresponding bit in the PICSR has no effect on the underlying latch. 
+
+include::{imagesdir}/wavedrom/edn/picsr.edn[]
+
+[[PICSR]]
+.PICSR Field Description
+[%autowidth, float="center", align="center", cols="^,^", options="headers",]
+|===
+|IS	|Interrupt Status +
+0x00000000 All interrupts are inactive +
+0x00000001 Interrupt input 0 is pending +
+… +
+0xFFFFFFFF All interrupts are pending
+|===
