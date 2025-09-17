@@ -74,5 +74,6 @@ include::performance-counters.adoc[]
 include::power-management.adoc[]
 include::programmable-interrupt.adoc[]
 include::tick-timer.adoc[]
+include::or1k-implementation.adoc[]
 
 include::index.adoc[]

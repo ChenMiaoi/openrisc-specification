@@ -1,0 +1,21 @@
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 1, name: "CYMACADDE", attr: ["0", "R/W"]},
+  {bits: 1, name: "OVMACADDE", attr: ["0", "R/W"]},
+  {bits: 24, name: "Reversed", attr: ["-", "R"]},
+  {bits: 1, name: "", attr: ["Reset", "R/W"]},
+]}
+....
+
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 1, name: "CYADDE", attr: ["0", "R/W"]},
+  {bits: 1, name: "OVADDE", attr: ["0", "R/W"]},
+  {bits: 1, name: "CYMULE", attr: ["0", "R/W"]},
+  {bits: 1, name: "OVMULE", attr: ["0", "R/W"]},
+  {bits: 1, name: "DBZE", attr: ["0", "R/W"]},
+  {bits: 1, name: "", attr: ["Reset", "R/W"]},
+]}
+....

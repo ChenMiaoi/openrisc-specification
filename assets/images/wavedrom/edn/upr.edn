@@ -1,0 +1,26 @@
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 1, name: "PCUR", attr: ["-", "R"]},
+  {bits: 1, name: "PICR", attr: ["-", "R"]},
+  {bits: 1, name: "PMP", attr: ["-", "R"]},
+  {bits: 1, name: "TTP", attr: ["-", "R"]},
+  {bits: 13, name: "Reversed", attr: ["X", "R"]},
+  {bits: 9, name: "CUP", attr: ["-", "R"]},
+  {bits: 1, name: "", attr: ["Reset", "R/W"]},
+]}
+....
+
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 1, name: "UP", attr: ["-", "R"]},
+  {bits: 1, name: "DCP", attr: ["-", "R"]},
+  {bits: 1, name: "ICP", attr: ["-", "R"]},
+  {bits: 1, name: "DMP", attr: ["-", "R"]},
+  {bits: 1, name: "IMP", attr: ["-", "R"]},
+  {bits: 1, name: "MP", attr: ["-", "R"]},
+  {bits: 1, name: "DUP", attr: ["-", "R"]},
+  {bits: 1, name: "", attr: ["Reset", "R/W"]},
+]}
+....

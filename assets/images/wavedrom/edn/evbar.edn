@@ -1,0 +1,8 @@
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 13, name: "Reserved", attr: ["-", "R"]},
+  {bits: 19, name: "EVBA", attr: ["-", "R"]},
+  {bits: 1, name: "", attr: ["Reset", "R/W"]},
+]}
+....

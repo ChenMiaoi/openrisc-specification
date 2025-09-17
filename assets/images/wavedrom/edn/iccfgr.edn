@@ -1,0 +1,22 @@
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 1, name: "CBLRI", attr: ["-", "R"]},
+  {bits: 19, name: "Reversed", attr: ["-", "R"]},
+  {bits: 1, name: "", attr: ["Reset", "R/W"]},
+]}
+....
+
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 3, name: "NCW", attr: ["-", "R"]},
+  {bits: 4, name: "NCS", attr: ["-", "R"]},
+  {bits: 3, name: "CBS", attr: ["-", "R"]},
+  {bits: 1, name: "Res", attr: ["-", "R"]},
+  {bits: 1, name: "CCRI", attr: ["-", "R"]},
+  {bits: 1, name: "CBIRI", attr: ["-", "R"]},
+  {bits: 1, name: "CBPRI", attr: ["-", "R"]},
+  {bits: 1, name: "", attr: ["Reset", "R/W"]},
+]}
+....

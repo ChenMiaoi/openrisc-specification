@@ -1,0 +1,470 @@
+[[OR1K-Implementation]]
+:imagesdir: {docdir}/../assets/images
+:codedir: {docdir}/../assets/resource/code
+
+== OpenRISC 1000 Implementations
+
+=== Overview
+
+Implementations of the OpenRISC 1000 architecture come in different configurations and version releases.
+
+Version and unit present registers both identify the model, version and its configuration. Detailed configuration for some units is available in configuration registers.
+
+An operating system can read VR, UPR and the configuration registers, and adjust its own operation if required. Operating systems ported on a particular OpenRISC version should run on different configurations of this version without modifications.
+
+=== Version Register(VR)
+
+The version register is a 32-bit special-purpose supervisor-level register accessible 
+with the l.mtspr/l.mfspr instructions in supervisor mode. 
+
+It identifies the version (model) and revision level of the OpenRISC 1000 processor. It also specifies the possible template on which this implementation is based.
+
+*This register is deprecated, and the AVR and VR2 SPR should be used to determine more accurately the version information*.
+
+include::{imagesdir}/wavedrom/edn/vr.edn[]
+
+[[VR]]
+.VR Field Description
+[%autowidth, float="center", align="center", cols="^,^", options="headers",]
+|===
+|REV	|Revision +
+0..63 A 6-bit number that identifies various releases of a particular version. This number is changed for each revision of the device. 
+|UVRP	|Updated Version Registers Present +
+A bit indicating that the AVR and VR2 SPRs are available and should be used to determine version information.
+|CFG	|Configuration Template +
+0..99 An 8-bit number that identifies particular configuration. However this is just for operating systems that do not use information provided by configuration registers and thus are not truly portable across different configurations of one implementation version. + 
+Configurations that do implement configuration registers must have their CFG smaller than 50 and configurations that do not implement configuration registers must have their CFG 50 or bigger. 
+|VER	|Version + 
+ 0x10..0x19 An 8-bit number that identifies a particular processor version and version of the OpenRISC architecture. Values below 0x10 and above 0x19 are illegal for OpenRISC 1000 processor implementations. 
+|===
+
+=== Unit Present Register (UPR)
+
+The unit present register is a 32-bit special-purpose supervisor-level register accessible with the l.mtspr/l.mfspr instructions in supervisor mode.
+
+It identifies the present units in the processor. It has a bit for each possible unit or functionality. The lower sixteen bits identify the presence of units defined in the OpenRISC 1000 architecture. The upper sixteen bits define the presence of custom units.
+
+include::{imagesdir}/wavedrom/edn/upr.edn[]
+
+[[UPR]]
+.UPR Field Description
+[%autowidth, float="center", align="center", cols="^,^,^,^", options="headers",]
+|===
+|UP	|UPR Present +
+0 UPR is not present +
+1 UPR is present
+|DCP	|Data Cache Present +
+0 Unit is not present +
+1 Unit is present
+|ICP	|Instruction Cache Present +
+0 Unit is not present +
+1 Unit is present
+|DMP	|Data MMU Present +
+0 Unit is not present +
+1 Unit is present
+|IMP	|Instruction MMU Present +
+0 Unit is not present +
+1 Unit is present
+|MP	|MAC Present +
+0 Unit is not present +
+1 Unit is present
+|DUP	|Debug Unit Present +
+0 Unit is not present +
+1 Unit is present
+|PCUP	|Performance Counters Unit Present +
+0 Unit is not present +
+1 Unit is present
+|PMP	|Power Management Present +
+0 Unit is not present +
+1 Unit is present
+|PICP	|Programmable Interrupt Controller Present +
+0 Unit is not present +
+1 Unit is present
+|TTP	|Tick Timer Present +
+0 Unit is not present +
+1 Unit is present
+|CUP	|Custom Units Present
+|===
+
+=== CPU Configuration Register (CPUCFGR)
+
+The CPU configuration register is a 32-bit special-purpose supervisor-level register accessible with the l.mtspr/l.mfspr instructions in supervisor mode.
+
+It specifies CPU capabilities and configuration.
+
+include::{imagesdir}/wavedrom/edn/cpucfgr.edn[]
+
+[[CPUCFGR]]
+.CPUCFGR Field Description
+[%autowidth, float="center", align="center", cols="^,^,^,^", options="headers",]
+|===
+|NSGF	|Number of Shadow GPR Files +
+0 Zero shadow GPR files +
+15 Fifteen shadow GPR Files
+|CGF	|Custom GPR File +
+0 GPR file has 32 registers +
+1 GPR file has less than 32 registers
+|OB32S	|ORBIS32 Supported +
+0 Not supported +
+1 Supported
+|OB64S	|ORBIS64 Supported +
+0 Not supported +
+1 Supported
+|OF32S	|ORFPX32 Supported +
+0 Not supported +
+1 Supported
+|OF64S	|ORFPX64 Supported +
+0 Not supported +
+1 Supported
+|OV64S	|ORVDX64 Supported +
+0 Not supported +
+1 Supported
+|ND	|No Delay-Slot +
+0 CPU executes delay slot of jump/branch instructions before taking jump/branch +
+1 CPU does not execute instructions in delay slot if taking jump/branch
+|AVRP	|Architecture Version Register (AVR) Present +
+0 AVR not present +
+1 AVR present
+|EVBARP	|Exception Vector Base Address Register (EVBAR) Present +
+0 EVBAR not present +
+1 EVBAR present
+|ISRP	|Implementation-Specific Registers (ISR0-7) Preset +
+0 ISRs not present +
+1 ISRs present
+|AECSRP	|Arithmetic Exception Control Register (AECR) and Arithmetic Exception Status Register (AESR) present +
+0 AECR and AESR not present +
+1 AECR and AESR present
+|OF64A32S	|ORFPX64A32 Supported +
+0 Not supported +
+1 
+| |
+|===
+
+=== DMMU Configuration Register (DMMUCFGR)
+
+The DMMU configuration register is a 32-bit special-purpose supervisor-level register accessible with the l.mtspr/l.mfspr instructions in supervisor mode.
+
+It specifies the DMMU capabilities and configuration.
+
+include::{imagesdir}/wavedrom/edn/dmmucfgr.edn[]
+
+[[DMMUCFGR]]
+.DMMUCFGR Field Description
+[%autowidth, float="center", align="center", cols="^,^,^,^", options="headers",]
+|===
+|NTW	|Number of TLB Ways +
+0 DTLB has one way +
+… +
+3 DTLB has four ways
+|NTS	|Number of TLB Sets (entries per way) +
+0 DTLB has one set (entries per way) +
+… +
+7 DTLB has 128 sets (entries per way)
+|NAE	|Number of ATB Entries +
+0 DATB does not exist +
+1 DATB has one entry +  
+… +
+4 DATB has four entries +
+5..7 Invalid values
+|CRI	|Control Register Implemented +
+0 DMMUCR not implemented +
+1 DMMUCR implemented
+|PRI	|Protection Register Implemented +
+0 DMMUPR not implemented +
+1 DMMUPR implemented
+|TEIRI	|TLB Entry Invalidate Register Implemented +
+0 DTLBEIR not implemented +
+1 DTLBEIR implemented
+|HTR	|Hardware TLB Reload +
+0 TLB Entry reloaded in software +
+1 TLB Entry reloaded in hardware
+| |
+|===
+
+=== IMMU Configuration Register (IMMUCFGR)
+
+The IMMU configuration register is a 32-bit special-purpose supervisor-level register accessible with the l.mtspr/l.mfspr instructions in supervisor mode.
+
+It specifies IMMU capabilities and configuration.
+
+include::{imagesdir}/wavedrom/edn/immucfgr.edn[]
+
+[[IMMUCFGR]]
+.IMMUCFGR Field Description
+[%autowidth, float="center", align="center", cols="^,^,^,^", options="headers",]
+|===
+|NTW	|Number of TLB Ways +
+0 ITLB has one way +
+… +
+3 ITLB has four ways
+|NTS	|Number of TLB Sets (entries per way) +
+0 ITLB has one set (entries per way) +
+… +
+7 ITLB has 128 sets (entries per way)
+|NAE	|Number of ATB Entries +
+0 IATB does not exist +
+1 IATB has one entry +
+… +
+4 IATB has four entries +
+5..7 Invalid values
+|CRI	|Control Register Implemented +
+0 IMMUCR not implemented +
+1 IMMUCR implemented
+|PRI	|Protection Register Implemented +
+0 DMMUPR not implemented +
+1 DMMUPR implemented
+|TEIRI	|TLB Entry Invalidate Register Implemented +
+0 ITLBEIR not implemented +
+1 ITLBEIR implemented
+|HTR	|Hardware TLB Reload +
+0 TLB Entry reloaded in software +
+1 TLB Entry reloaded in hardware
+| |
+|===
+
+=== DC Configuration Register (DCCFGR)
+
+The DC configuration register is a 32-bit special-purpose supervisor-level register accessible with the l.mtspr/l.mfspr instructions in supervisor mode.
+
+It specifies data cache capabilities and configuration.
+
+include::{imagesdir}/wavedrom/edn/dccfgr.edn[]
+
+[[DCCFGR]]
+.DCUCFGR Field Description
+[%autowidth, float="center", align="center", cols="^,^,^,^", options="headers",]
+|===
+|NCW	|Number of Cache Ways +
+0 DC has one way +
+… +
+5 DC has thirty-two ways
+|NCS	|Number of Cache Sets (cache blocks per way) +
+0 DC has one set (cache blocks per way) +
+… +
+10 DC has 1024 sets (cache blocks per way)
+|BS	|Cache Block Size +
+0 Cache block size 16 bytes +
+1 Cache block size 32 bytes
+|CWS	|Cache Write Strategy +
+0 Cache write-through +
+1 Cache write-back
+|CCRI	|Cache Control Register Implemented +
+0 Register is not implemented +
+1 Register is implemented
+|CBIRI	|Cache Block Invalidate Register Implemented +
+0 Register is not implemented +
+1 Register is implemented
+|CBPRI	|Cache Block Prefetch Register Implemented +
+0 Register is not implemented +
+1 Register is implemented
+|CBLRI	|Cache Block Lock Register Implemented +
+0 Register is not implemented +
+1 Register is implemented
+|CBFRI	|Cache Block Flush Register Implemented +
+0 Register is not implemented +
+1 Register is implemented
+|CBWBRI	|Cache Block Write-Back Register Implemented +
+0 Register is not implemented +
+1 Register is implemented
+|===
+
+=== IC Configuration Register (ICCFGR)
+
+The IC configuration register is a 32-bit special-purpose supervisor-level register accessible with the l.mtspr/l.mfspr instructions in supervisor mode.
+
+It specifies instruction cache capabilities and configuration.
+
+include::{imagesdir}/wavedrom/edn/iccfgr.edn[]
+
+[[ICCFGR]]
+.ICUCFGR Field Description
+[%autowidth, float="center", align="center", cols="^,^,^,^", options="headers",]
+|===
+|NCW	|Number of Cache Ways +
+0 DC has one way +
+… +
+5 DC has thirty-two ways
+|NCS	|Number of Cache Sets (cache blocks per way) +
+0 DC has one set (cache blocks per way) +
+… +
+10 DC has 1024 sets (cache blocks per way)
+|BS	|Cache Block Size +
+0 Cache block size 16 bytes +
+1 Cache block size 32 bytes
+|CCRI	|Cache Control Register Implemented +
+0 Register is not implemented +
+1 Register is implemented
+|CBIRI	|Cache Block Invalidate Register Implemented +
+0 Register is not implemented +
+1 Register is implemented
+|CBPRI	|Cache Block Prefetch Register Implemented +
+0 Register is not implemented +
+1 Register is implemented
+|CBLRI	|Cache Block Lock Register Implemented +
+0 Register is not implemented +
+1 Register is implemented
+| |
+|===
+
+=== Debug Configuration Register (DCFGR)
+
+The debug configuration register is a 32-bit special-purpose supervisor-level register accessible with the l.mtspr/l.mfspr instructions in supervisor mode.
+
+It specifies debug unit capabilities and configuration.
+
+include::{imagesdir}/wavedrom/edn/dcfgr.edn[]
+
+[[DCFGR]]
+.DCFGR Field Description
+[%autowidth, float="center", align="center", cols="^,^,^,^", options="headers",]
+|===
+|NDP	|Number of Debug Pairs +
+0 Debug unit has one DCR/DVR pair +
+… +
+7 Debug unit has eight DCR/DVR pairs
+|WPCI	|Watchpoint Counters Implemented +
+0 Watchpoint counters not implemented +
+1 Watchpoint counters implemented
+|===
+
+=== Performance Counters Configuration Register (PCCFGR)
+
+The performance counters configuration register is a 32-bit special-purpose supervisor-level register accessible with the l.mtspr/l.mfspr instructions in supervisor mode.
+
+It specifies performance counters unit capabilities and configuration.
+
+include::{imagesdir}/wavedrom/edn/pccfgr.edn[]
+
+[[PCCFGR]]
+.PCCFGR Field Description
+[%autowidth, float="center", align="center", cols="^,^", options="headers",]
+|===
+|NPC	|Number of Performance Counters +
+0 One performance counter +
+… +
+7 Eight performance counters
+|===
+
+=== Version Register 2 (VR2)
+
+The version register 2 is a 32-bit special-purpose supervisor-level register accessible with the l.mfspr instruction in supervisor mode.
+
+It holds implementation-specific version information. It is intended to replace the VR 
+register.
+
+The value in the CPUID field should correspond to an implementation list held on the site which hosts this document. It is most likely that a master list will also be maintained at openrisc.io.
+
+Its presence is indicated by the UVRP bit in the Version Register (VR).
+
+include::{imagesdir}/wavedrom/edn/vr2.edn[]
+
+[[VR2]]
+.VR2 Field Description
+[%autowidth, float="center", align="center", cols="^,^", options="headers",]
+|===
+|CPUID	|CPU Identification Number +
+Implementation-specific identification number. Each implementation should have a unique identification number.
+|VER	|Version +
+Implementation-specific version number. This field, if interpreted as an unsigned 24-bit number, should increase for each new version. The implementation reference manual should document the meaning of this value.
+|===
+
+=== Architecture Version Register (AVR)
+
+The architecture version register is a 32-bit special-purpose supervisor-level register accessible with the l.mfspr instruction in supervisor mode.
+
+It indicates the most recent version the implementation contains features from .The implementation must at least implement an accurate set of feature-presence bits in the appropriate registers according to that version of the architecture spec, so the presence of each of that version's features can be checked. Its presence is indicated by the AVRP bit in the CPU Configuration Register (CPUCFGR).
+
+include::{imagesdir}/wavedrom/edn/avr.edn[]
+
+[[AVR]]
+.AVR Field Description
+[%autowidth, float="center", align="center", cols="^,^", options="headers",]
+|===
+|MAJ	|Major Architecture Version Number
+|MIN	|Minor Architecture Version Number
+|REV	|Architecture Revision Number
+|===
+
+=== Exception Vector Base Address Register (EVBAR)
+
+The architecture version register is a 32-bit special-purpose supervisor-level register accessible with the l.mfspr/ l.mtspr instructions in supervisor mode.
+
+This optional register can be used to apply an offset to the exception vector addresses.  Its presence is indicated by the EVBARP bit in the CPU Configuration Register (CPUCFGR).
+
+If SR[EPH] is set, this value is logically ORed with the offset that provides.
+
+include::{imagesdir}/wavedrom/edn/evbar.edn[]
+
+[[EVBAR]]
+.EVBAR Field Description
+[%autowidth, float="center", align="center", cols="^,^", options="headers",]
+|===
+|EVBA	|Exception Vector Base Address +
+Location for the start of exception vectors. Its reset value is implementation-specific.
+|===
+
+=== Arithmetic Exception Control Register (AECR)
+
+The arithmetic exception control register is a 32-bit special-purpose supervisor-level register accessible with the l.mfspr/ l.mtspr instructions in supervisor mode.
+
+This optional register can be used for fine-grained control over which arithmetic  operations trigger overflow exceptions when the OVE bit is set in the Supervision Register (SR). Its presence is indicated by the AECSRP bit in the CPU Configuration Register (CPUCFGR).
+
+include::{imagesdir}/wavedrom/edn/aecr.edn[]
+
+[[AECR]]
+.AECR Field Description
+[%autowidth, float="center", align="center", cols="^,^", options="headers",]
+|===
+|CYADDE	|Carry on Add Exception +
+Carry flag set by unsigned overflow on integer addition and subtraction instructions causes exception
+|OVADDE	|Overflow on Add Exception +
+Overflow flag set by signed overflow on integer addition and subtraction instructions causes exception
+|CYMULE	|Carry on Multiply Exception +
+Carry flag set by unsigned overflow on integer multiplication instructions causes exception
+|OVMULE	|Overflow on Multiply Exception +
+Overflow flag set by signed overflow on integer multiplication instructions causes exception
+|DBZE	|Divide By Zero Exception +
+Overflow flag set by divide-by-zero on integer division instruction, or carry flag set by divide-by-zero on l.divu instruction, causes exception
+|CYMACADDE	|Carry on MAC Addition Exception +
+Carry flag set by unsigned overflow on integer addition stage of  MAC instructions causes exception
+|OVMACADDE	|Overflow on MAC Addition Exception +
+Overflow flag set by signed overflow on integer addition stage of  MAC instructions causes exception
+|===
+
+=== Arithmetic Exception Status Register (AESR)
+
+The arithmetic exception status register is a 32-bit special-purpose supervisor-level register accessible with the l.mfspr/l.mtspr instructions in supervisor mode.
+
+This optional register indicates which arithmetic operations triggered an exception. The exceptions are triggered when the OVE bit is set in the Supervision Register (SR), and the overflow or carry flag is set according to any conditions with the corresponding bit set in the Arithmetic Exception Control Register (AECR).
+
+This register will indicate which condition in the Arithmetic Exception Control Register (AECR) caused the exception by setting the corresponding bit. The bits can be cleared by writing '0' to them. The exception will occur due to the arithmetic operation, not due to the flags in this register being set, so failing to clear the flag before returning from exception with SR[CY] or SR[OV] set will not cause another exception.
+
+Its presence is indicated by the AECSRP bit in the CPU Configuration Register (CPUCFGR).
+
+include::{imagesdir}/wavedrom/edn/aesr.edn[]
+
+[[AESR]]
+.AESR Field Description
+[%autowidth, float="center", align="center", cols="^,^", options="headers",]
+|===
+|CYADDE	|Carry on Add Exception +
+Carry flag set by unsigned overflow on integer addition and subtraction instructions causes exception
+|OVADDE	|Overflow on Add Exception +
+Overflow flag set by signed overflow on integer addition and subtraction instructions causes exception
+|CYMULE	|Carry on Multiply Exception +
+Carry flag set by unsigned overflow on integer multiplication instructions causes exception
+|OVMULE	|Overflow on Multiply Exception +
+Overflow flag set by signed overflow on integer multiplication instructions causes exception
+|DBZE	|Divide By Zero Exception +
+Overflow flag set by divide-by-zero on integer division instruction, or carry flag set by divide-by-zero on l.divu instruction, causes exception
+|CYMACADDE	|Carry on MAC Addition Exception +
+Carry flag set by unsigned overflow on integer addition stage of  MAC instructions causes exception
+|OVMACADDE	|Overflow on MAC Addition Exception +
+Overflow flag set by signed overflow on integer addition stage of  MAC instructions causes exception
+|===
+
+=== Implementation-Specific Registers (ISR0-7)
+
+The implementation-specific registers are 32-bit special-purpose supervisor-level register accessible with the l.mfspr instruction in supervisor mode.
+
+They are SPR space which can be used by implementations for any purpose. Their presence is indicated by the ISRP bit in the CPU Configuration Register (CPUCFGR).

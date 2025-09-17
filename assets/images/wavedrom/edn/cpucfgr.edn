@@ -1,0 +1,27 @@
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 1, name: "ND", attr: ["-", "R"]},
+  {bits: 1, name: "AVRP", attr: ["-", "R"]},
+  {bits: 1, name: "EVBARP", attr: ["-", "R"]},
+  {bits: 1, name: "ISRP", attr: ["-", "R"]},
+  {bits: 9, name: "AECSRP", attr: ["-", "R"]},
+  {bits: 9, name: "OF64A32S", attr: ["-", "R"]},
+  {bits: 16, name: "Reversed", attr: ["-", "R"]},
+  {bits: 1, name: "", attr: ["Reset", "R/W"]},
+]}
+....
+
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 4, name: "NSGF", attr: ["-", "R"]},
+  {bits: 1, name: "CGF", attr: ["-", "R"]},
+  {bits: 1, name: "OB32S", attr: ["-", "R"]},
+  {bits: 1, name: "OB64S", attr: ["-", "R"]},
+  {bits: 1, name: "OF32S", attr: ["-", "R"]},
+  {bits: 1, name: "OF64S", attr: ["-", "R"]},
+  {bits: 1, name: "OV64S", attr: ["-", "R"]},
+  {bits: 1, name: "", attr: ["Reset", "R/W"]},
+]}
+....

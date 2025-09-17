@@ -1,0 +1,21 @@
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 20, name: "Reversed", attr: ["-", "R"]},
+  {bits: 1, name: "", attr: ["Reset", "R/W"]},
+]}
+....
+
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 2, name: "NTW", attr: ["-", "R"]},
+  {bits: 3, name: "NTS", attr: ["-", "R"]},
+  {bits: 3, name: "NAE", attr: ["-", "R"]},
+  {bits: 1, name: "CRI", attr: ["-", "R"]},
+  {bits: 1, name: "PRI", attr: ["-", "R"]},
+  {bits: 1, name: "TEIRI", attr: ["-", "R"]},
+  {bits: 1, name: "HTR", attr: ["-", "R"]},
+  {bits: 1, name: "", attr: ["Reset", "R/W"]},
+]}
+....
