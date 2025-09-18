@@ -1,0 +1,383 @@
+[[ApplicationBinaryInterface]]
+:imagesdir: {docdir}/../assets/images
+:codedir: {docdir}/../assets/resource/code
+
+== Application Binary Interface
+
+The ABI is currently defined only for 32-bit OpenRISC. When a toolchain is developed for 64-bit, this section will need updating.
+
+=== Data Representation
+
+==== Fundamental Types
+
+Scalar types in the ISO/ANSI C language are based on memory operands definitions from the chapter entitled “Addressing Modes and Operand Conventions” on page 22. Similar relations between architecture and language types can be used for any other language.
+
+[[ScalarTypes]]
+.Scalar Types
+[%autowidth, float="center", align="center", cols="^,^,^,^,^", options="headers",]
+|===
+|*Type*	|*C TYPE*	|*SIZEOF*	|*ALIGNMENT(BYTES)*	|*OPENRISC EQUIVALENT*
+.8+|Integral	|char + 
+signed char	|1 |1 |Signed byte
+|unsigned char	|1	|1	|Unsigned byte
+|short +
+signed short	|2	|2	|Signed halfword
+|unsigned short	|2	|2	|Unsigned halfword
+|int +
+signed int +
+long +
+signed long +
+enum	|4	|4	|Signed singleword
+|unsigned int	|4	|4	|Unsigned singleword
+|long long +
+signed long long	|8	|4	|Signed doubleword
+|unsigned long long	|8	|4	|Unsigned doubleword
+|Pointer	|Any-type * +
+Any-type (*) ()	|4	|4	|Unsigned singleword
+.2+|Floating-point	|float	|4	|4	|Single precision float
+|double	|8	|4	|Double precision float
+|===
+
+Prior versions of this table specified a native 8-byte alignment for 8-byte values. Since current OR1200 implementation never required this, and the compiler did not implement it, the specification has changed to match the 32-bit OpenRISC platform in use.
+
+A null pointer of any type must be zero. All floating-point types are IEEE-754 compliant.
+The OpenRISC programming model introduces a set of fundamental vector data types, as described by Table 17-2. For vector assignments both sides of an assignment must be of the same vector type.
+
+[[VectorTypes]]
+.Vector Types
+[%autowidth, float="center", align="center", cols="^,^,^,^", options="headers",]
+|===
+|*VECTOR TYPE*	|*SIZEOF*	|*ALIGNMENT (BYTES)*	|*OPENRISC EQUIVALENT*
+|Vector char+
+Vector signed char	|8 |8 |Vector of signed bytes
+|Vector unsigned char	|8	|8	|Vector of unsigned bytes
+|Vector short +
+Vector signed short	|8	|8	|Vector of signed halfwords
+|Vector unsigned short	|8	|8	|Vector of unsigned halfwords
+|Vector int +
+Vector signed int +
+Vector long +
+Vector signed long 	|8	|8	|Vector of signed singlewords
+|Vector unsigned int	|8	|8	|Vector of unsigned singlewords
+|Vector float	|8	|8	|Vector of single-precisions
+|===
+
+For alignment restrictions of all types see the section entitled link:AlignedMisaligned[Aligned and Misaligned Accesses].
+
+==== Aggregates and Unions
+
+Aggregates (structures and arrays) and unions assume the alignment of their most strictly aligned element.
+
+* An array uses the alignment of its elements.
+* Structures and unions can require padding to meet alignment restrictions. Each element is assigned to the lowest aligned address.
+
+include::{codedir}/byte-aligned-1.adoc[]
+include::{codedir}/byte-aligned-8.adoc[]
+include::{codedir}/byte-aligned-16.adoc[]
+
+==== Bit-fields
+
+C structure and union definitions can have elements defined by a specified number of bits. Table 17-3 describes valid bit-field types and their ranges.
+
+[[BitField]]
+.Bit-Field Types and Ranges
+[%autowidth, float="center", align="center", cols="^,^,^", options="headers",]
+|===
+|*Bit-field Type*	|*Width w [bits]*	|*Range*
+|signed char +
+char +
+unsigned char	|1 to 8	|stem:[-2^{w-1}] to stem:[2^{w-1}-1] +
+0 to stem:[2^{w-1}] +
+0 to stem:[2^{w-1}]
+|signed short +
+short +
+unsigned short	|1 to 16	|stem:[-2^{w-1}] to stem:[2^{w-1}-1] +
+0 to stem:[2^{w-1}] +
+0 to stem:[2^{w-1}]
+|signed int +
+int +
+enum +
+unsigned int +
+signed long +
+long +
+unsigned long	|1 to 32	|stem:[-2^{w-1}] to stem:[2^{w-1}-1] +
+0 to stem:[2^{w-1}] +
+0 to stem:[2^{w-1}] +
+0 to stem:[2^{w-1}] +
+stem:[-2^{w-1}] to stem:[2^{w-1}-1] +
+0 to stem:[2^{w-1}] +
+0 to stem:[2^{w-1}]
+|===
+
+Bit-fields follow the same alignment rules as aggregates and unions, with the following additions:
+
+* Bit-fields are allocated from most to least significant (from left to right)
+* A bit-field must entirely reside in a storage unit appropriate for its declared type.
+* Bit-fields may share a storage unit with other struct/union elements, including elements that are not bit-fields. Struct elements occupy different parts of the storage unit.
+* Unnamed bit-fields' types do not affect the alignment of a structure or union
+
+include::{codedir}/storage-unit-12.adoc[]
+
+=== Function Calling Sequence
+
+This section describes the standard function calling sequence, including stack frame layout, register usage, parameter passing, and so on. The standard calling sequence requirements apply only to global functions, however it is recommended that all functions use the standard calling sequence.
+
+==== Register Usage
+
+The OpenRISC 1000 architecture defines 32 general-purpose registers. These registers are 32 bits wide in 32-bit implementations and 64 bits wide in 64-bit implementations.
+
+[[GPR]]
+.General-Purpose Registers
+[%autowidth, float="center", align="center", cols="^,^,^,^,^,^", options="headers",]
+|===
+|*Register*	|*Preserved across function calls*	|*Usage* |*Register*	|*Preserved across function calls*	|*Usage*
+|R31	|No	|Temporary register
+|R30	|Yes	|Callee-saved register
+|R29	|No	|Temporary register
+|R28	|Yes	|Callee-saved register
+|R27	|No	|Temporary register
+|R26	|Yes	|Callee-saved register
+|R25	|No	|Temporary register
+|R24	|Yes	|Callee-saved register
+|R23	|No	|Temporary register
+|R22	|Yes	|Callee-saved register
+|R21	|No	|Temporary register
+|R20	|Yes	|Callee-saved register
+|R19	|No	|Temporary register
+|R18	|Yes	|Callee-saved register
+|R17	|No	|Temporary register
+|R16	|Yes	|Callee-saved register
+|R15	|No	|Temporary register
+|R14	|Yes	|Callee-saved register
+|R13	|No	|Temporary register
+|R12	|No	|Temporary register for 64-bit +
+RVH - Return value upper 32 bits of 64 bit value on 32-bit system
+|R11	|No	|RV – Return value
+|R10	|Yes	|Thread Local Storage
+|R9	|Yes	|LR – Link address register
+|R8	|No	|Function parameter word 5
+|R7	|No	|Function parameter word 4
+|R6	|No	|Function parameter word 3
+|R5	|No	|Function parameter word 2
+|R4	|No	|Function parameter word 1
+|R3	|No	|Function parameter word 0
+|R2	|Yes	|FP - Frame pointer (optional)
+|R1	|Yes	|SP - Stack pointer
+|R0	|-	|Fixed to zero
+|===
+
+Some registers have assigned roles:
+
+[%autowidth, float="center", align="center", cols="^,^", options="headers",]
+|===
+|R0 [Zero]	|Holds a zero value.
+|R1 [SP]	|The stack pointer holds the limit of the current stack frame. The first 128 bytes below the stack pointer are reserved for leaf functions, and below that are undefined. Stack pointer must be word aligned at all times.
+|R2 [FP]	|The frame pointer holds the address of the previous stack frame. Incoming function parameters reside in the previous stack frame and can be accessed at positive offsets from FP. The compiler may use this register for other puposes if instructed.
+|R3 through R8	|General-purpose parameters use up to 6 general-purpose registers. Parameters beyond the sixth word appear on the stack.
+|R9 [LR]	|Link address is the location of the function call instruction and is used to calculate where program execution should return after function completion. 
+|R10 [TLS]	|Thread Local Storage host the address of this context’s thread local storage structure.  This mechanism, as normally provided by the compiler, allows designated variables to have one instance per thread.
+|R11 [RV]	|Return value of the function. For void functions a value is not defined. For functions returning a union or structure, a pointer to the result is placed into return value register.
+|R12 [RVH]	|Return value high of the function. For functions returning 32-bit values this register can be considered temporary register. Note that this holds the less significant bits on big-endian implementations; 32-bit values still go in RV.
+|===
+
+On big-endian implementations, R11 is used for the high 32 bits of 64-bit return values and R12 is used for the low 32 bits. On little-endian implementations this is reversed. This matches register order with memory storage.
+
+Furthermore, an OpenRISC 1000 implementation might have several sets of shadowed general-purpose registers. These shadowed registers are used for fast context switching and sets can be switched only by the operating system.
+
+==== The Stack Frame
+
+In addition to registers, each function has a frame on the run-time stack. This stack grows downward from high addresses. Table 17-5 shows the stack frame organization.
+
+
+[[StackFrame]]
+.Stack Frame
+[%autowidth, float="center", align="center", cols="^,^,^", options="headers",]
+|===
+|*Position*	|*Contents*	|*Frame*
+|FP + 4N +
+… +
+FP + 0	|Parameter N +
+… +
+First stack parameter	|Previous
+|FP – 4	|Return address	.3+|Current
+|FP – 8	|Previous FP value	
+|FP – 12 +
+... +
+SP + 0	|Function variables +
+... +
+Subfunction call parameters	
+|SP – 4 +
+SP – 128	|For use by leaf functions w/o function prologue/epilogue .2+|Future
+|SP – 132 +
+SP – 2536	|For use by exception handlers
+|===
+
+When no compiler optimization is in place, the stack pointer always points to the end of the latest allocated stack frame. However when optimization is in effect the stack pointer may not be updated, so that up to 128 bytes beyond the current stack pointer are in use.
+Optimized code will in general not use the frame pointer, freeing it up for use as another temporary register.
+
+All frames must be word aligned.
+
+The first 128 bytes below the current stack frame are reserved for use by optimized code. Exception handlers must guarantee that they will not use this area.
+
+==== Parameter Passing
+
+Functions receive up to their first 6 arguments in general-purpose parameter registers. No register holds more than one argument, and 64-bit arguments use two adjacent words. If there are more than six words, the remaining arguments are passed on the stack. Structure and union arguments are passed as pointers.
+
+All 64-bit arguments in a 32-bit system are passed using a pair of words when available, in the same way as for other arguments. 64-bit arguments are not aligned. For example long long arg1, long arg2, long long arg3 are passed in the following way: _arg1 in r3&r4, arg2 in r5, arg3 in r6&r7_. 
+
+On big-endian implementations the high 32 bits are passed in the lower numbered register of the pair. On little-endian implementations this is reversed.
+
+Individual arguments are not split across registers and stack, and variadic arguments are always put on the stack. For example, printf(char *fmt, …) only takes one register argument, fmt. 
+
+For C++, the first argument word is the this pointer.
+
+==== Functions Returning Scalars or No Value
+
+A function that returns an integral, pointer or vector/floating-point value places its result in the general-purpose RV register. void functions put no particular value in GPR[RV] register.
+
+64-bit return values also use the RVH register, which is otherwise undefined and not preserved across function calls.
+
+==== Functions Returning Structures or Unions
+
+A function that returns a structure or union places the address of the structure or union in the general-purpose RV register.
+
+A function that returns a structure by value expects the location where that structure is to be placed to be supplied in function parameter word 0 (R3).
+
+=== Operating System Interface
+
+==== Exception Interface
+
+The OpenRISC 1000 exception mechanism allows the processor to change to supervisor mode as a result of external signals, errors or execution of certain instructions. When an exception occurs the following events happen:
+
+* The address of the interrupted instruction, supervisor register and EA (when relevant) are saved into EPCR, ESR and EEAR registers
+* The machine mode is changed to supervisor mode as per section 6.3, Exception Processing. This includes disabling MMUs and exceptions.
+* The execution resumes from a predefined exception vector address which is different for every exception
+
+[[HardwareException]]
+.Hardware Exception and Signals
+[%autowidth, float="center", align="center", cols="^,^,^,^", options="headers",]
+|===
+|*Exception Type*	|*Vector Offset[11:0]*	|*SIGNAL*	|*Example*
+|Reset	|0x100	|None	|Reset
+|Bus Error	|0x200	|SIGBUS	|Unexisting physical location, bus parity error.
+|Data Page Fault	|0x300	|SIGSEGV	|Unmapped data location or protection violation.
+|Instruction Page Fault	|0x400	|SIGSEGV |Unmapped instruction location or protection violation
+|Tick Timer Interrupt	|0x500	|None	|Process scheduling
+|Alignment	|0x600	|SIGBUS	|Unaligned data
+|Illegal Instruction	|0x700	|SIGILL	|Illegal/unimplemented instruction
+|External Interrupt	|0x800	|None	|Device has asserted an interrupt
+|D-TLB Miss	|0x900	|None	|DTLB software reload needed
+|I-TLB Miss	|0xA00	|None	|ITLB software reload needed
+|Range	|0xB00	|SIGSEGV	|Arithmetic overflow
+|System Call	|0xC00	|None	|Instruction l.sys
+|Trap	|0xE00	|SIGTRAP	|Instruction l.trap or debug unit exception.
+|===
+
+The significant bits (31-12) of the vector offset address for each exception depend on the setting of the Supervision Register (SR)'s EPH bit and presence and setting of of the Exception Vector Base Address Register (EVBAR), which can specify an offset. For example, in the absence of the EVBAR and with SR[EPH] clear, the offset is zero.
+
+The operating system handles an exception either by completing the faulting exception in a manner transparent to the application, if possible, or by delivering a signal to the application. Table 17-6 shows how hardware exceptions can be mapped to signals if the operating system cannot complete the faulting exception.
+
+==== Virtual Address Space
+
+For user programs to execute in virtual address space, the memory management unit (MMU) must be enabled. The MMU translates virtual address generated by the running process into physical address. This allows the process to run anywhere in the physical memory and additionally page to a secondary storage.
+
+Processes typically begin with three logical segments, commonly referred as “text”, “data” and “stack”. Additional segments may exist or can be created by the operating system.
+
+==== Page Size
+
+Memory is organized into pages, which are the system’s smallest units of memory allocation. The basic page size is 8KB with some implementations supporting 16MB and 32GB pages.
+
+==== Virtual Address Assignments
+
+Processes have full access to the entire virtual address space. However the size of a process can be limited by several factors such as a process size limit parameter, available physical memory and secondary storage.
+
+
+[[VirtualAddress]]
+.Virtual Address Configuration
+[%autowidth, float="center", align="center", cols="^,^", options="headers",]
+|===
+|0xFFFF_FFFF |Reserved system area
+|Start of Stack +
+Growing Down	|Stack
+|Growing Up |Heap
+| |.bss
+|Start of Data Segments	|.data
+|Start of Program Code	|.text
+|Start of Dynamic Segment Area	|Shared Objects
+|0x0000_2000 +
+0x0000_0000	|Unmapped
+|===
+
+Page at location 0x0 is usually reserved to catch dereferences of NULL pointers.
+Usually the beginning address of “.text”, “.data” and “.bss” segments are defined when linking the executable file. The heap is adjusted with facilities such as malloc and free. The dynamic segment area is adjusted with mmap, and the stack size is limited with setrlimit.
+
+==== Stack
+
+Every process has its own stack that is not tied to a fixed area in its address space. Since the stack can change differently for each call of a process, a process should use the stack pointer in general-purpose register r1 to access stack data.
+
+==== Processor Execution Modes
+
+The OpenRISC 1000 provides two execution modes: user and supervisor. Processes run in user mode and the operating system’s kernel runs in supervisor mode. A Process must execute the l.sys instruction to switch to supervisor mode, hence requesting service from the operating system. It is suggested that system calls use the same argument passing model as used with function calls, except additional register r11 specifies system call id.
+
+=== Position-Independent Code
+
+This section needs to be written. Position-independent code is desired for proper dynamic linking support, which remains to be implemented.
+
+=== ELF
+
+The OpenRISC tools use the ELF object file formats and DWARF debugging information formats, as described in System V Application Binary Interface, from the Santa Cruz Operation, Inc. ELF and DWARF provide a suitable basis for representing the information needed for embedded applications. Other object file formats are available, such as COFF. This section describes particular fields in the ELF and DWARF formats that differ from the base standards for those formats. 
+
+==== Header Convention
+
+The e_machine member of the ELF header contains the decimal value 33906 (hexadecimal 0x8472) that is defined as the name EM_OR32.
+
+The e_ident member of the ELF header contains values as shown in Table 17-8.
+
+[[e_ident]]
+.e_ident Field Values
+[%autowidth, float="center", align="center", cols="^,^,^", options="headers",]
+|===
+3+|*OR32 ELF e_ident Fields*
+|e_ident[EI_CLASS]	|ELFCLASS32	|For all 32-bit implementations
+|e_ident[EI_DATA]	|ELFDATA2MSB	|For all implementations
+|===
+
+The e_flags member of the ELF header contains values as shown in Table 17-9.
+
+[[e_flags]]
+.e_flags Field Values
+[%autowidth, float="center", align="center", cols="^,^,^", options="headers",]
+|===
+3+|*OR32 ELF e_flags*
+|HAS_RELOC	|0x01	|Contains relocation entries
+|EXEC_P	|0x02	|Is directly executable
+|HAS_LINENO	|0x04	|Has line number information
+|HAS_DEBUG	|0x08	|Has debugging information
+|HAS_SYMS	|0x10	|Has symbols
+|HAS_LOCALS	|0x20	|Has local symbols
+|DYNAMIC	|0x40	|Is dynamic object
+|WP_TEXT	|0x80	|Text section is write protected
+|D_PAGED	|0x100	|Is dynamically paged
+|===
+
+==== Sections
+
+There are no OpenRISC section requirements beyond the base ELF standards.
+
+==== Relocation
+
+This section describes values and algorithms used for relocations. In particular, it describes values the compiler/assembler must leave in place and how the linker modifies those values.
+
+[%autowidth, float="center", align="center", cols="^,^,^,^", options="headers",]
+|===
+|*Name*	|*Value*	|*Size*	|*Calculation*
+|R_OR32_NONE	|0	|0	|None
+|R_OR32_32	|1	|32	|A
+|R_OR32_16	|2	|16	|A & 0xffff
+|R_OR32_8	|3	|8	|A & 0xff
+|R_OR32_CONST	|4	|16	|A & 0xffff
+|R_OR32_CONSTH	|5	|16	|(A >> 16) & 0xffff
+|R_OR32_JUMPTARG	|6	|28	|(S + A -P) >> 2
+|===
+
+Key S indicates the final value assigned to the symbol refernced in the relocation record.  Key A is the added value specified in the relocation record. Key P indicates the address of the relocation (e.g., the address being modified).

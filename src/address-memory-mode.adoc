@@ -84,6 +84,7 @@ Figure 3 shows how bits and bytes are ordered in a doubleword.
 .Default Bit and Byte Ordering in Doublewords, Double Precision Floats and all Vector Types.
 image::wavedrom/svg/doubleword.svg[]
 
+[[AlignedMisaligned]]
 ==== Aligned and Misaligned Accesses
 
 A memory operand is naturally aligned if its address is an integral multiple of the operand

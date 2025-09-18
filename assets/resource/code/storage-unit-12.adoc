@@ -1,0 +1,40 @@
+[NOTE]
+====
+[source, c]
+struct {
+  short s: 9;
+  int j: 9;
+  char c;
+  short t: 9;
+  short u: 9;
+  char d;
+};
+
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 8, name: "char c"},
+  {bits: 6, name: "pad"},
+  {bits: 9, name: "int j"},
+  {bits: 9, name: "short s"},
+]}
+....
+
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 7, name: "pad"},
+  {bits: 9, name: "short u"},
+  {bits: 7, name: "pad"},
+  {bits: 9, name: "short t"},
+]}
+....
+
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 24, name: "pad"},
+  {bits: 8, name: "char d"},
+]}
+....
+====

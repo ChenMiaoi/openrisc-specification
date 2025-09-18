@@ -1,0 +1,17 @@
+[NOTE]
+====
+[source, c]
+struct {
+  char c;
+};
+
+[wavedrom, ,svg]
+....
+{reg:[
+  {bits: 8, name: "char c"},
+  {bits: 8,},
+  {bits: 8,},
+  {bits: 8,},
+]}
+....
+====
